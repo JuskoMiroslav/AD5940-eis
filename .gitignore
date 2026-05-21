@@ -1,0 +1,19 @@
+mx.scratch
+!.settings
+# Compiler outputs
+*.o
+*.d
+*.elf
+*.hex
+*.bin
+*.map
+
+# Build directories
+build/
+Output/
+Debug/
+Release/
+
+# VS Code specific settings that shouldn't be shared
+.vscode/ipch/
+.vscode/.cmeta/
