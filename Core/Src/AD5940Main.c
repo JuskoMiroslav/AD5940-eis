@@ -197,8 +197,7 @@ void AD5940ImpedanceStructInit(void) {
   pImpedanceCfg->DacVoltPP = 500; /* Maximum value is 600mV*/
   pImpedanceCfg->ExcitBufGain = EXCITBUFGAIN_0P25;
   pImpedanceCfg->HsDacGain = HSDACGAIN_0P2;
-  pImpedanceCfg->ADCRefVolt =
-      1.82; /* ADC reference voltage in V, used for gain calculation in PGA
+  pImpedanceCfg->ADCRefVolt = 1.82; /* ADC reference voltage in V, used for gain calculation in PGA
                calibration. Should be set according to actual hardware design.
              */
 

@@ -61,7 +61,7 @@ AppIMPCfg_Type AppIMPCfg = { .bParaChanged = bFALSE,
 		.HsDacUpdateRate = 0x1B,
 		.DacVoltPP = 300.0,
 		.BiasVolt = -0.0f,
-		.Vzero=1100.0f,
+		.Vzero=0,
 		.SinFreq = 100000.0, /* 1000Hz */
 
 		.DftNum = DFTNUM_2048,
