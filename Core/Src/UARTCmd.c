@@ -20,11 +20,12 @@
 #include <stdlib.h>
 #include "math.h"
 #define LINEBUFF_SIZE 128
-#define CMDTABLE_SIZE 7
+#define CMDTABLE_SIZE 8
 
 uint32_t help(uint32_t para1, uint32_t para2);
 uint32_t command_get_cfg(char *param1_str, double para2);
 uint32_t command_set_cfg(char *param1_str, double para2);
+uint32_t command_rcal_select(char *param1_str, double para2);
 uint32_t IDN(uint32_t para1, uint32_t para2);
 uint32_t EIS_start(uint32_t para1, uint32_t para2);
 uint32_t EIS_stop(uint32_t para1, uint32_t para2);
@@ -41,6 +42,7 @@ struct __uartcmd_table
 { (void*) help, "?", "print supported commands" },
 { (void*) command_set_cfg, "setcfg", "set config" },
 { (void*) command_get_cfg, "getcfg", "returns config" },
+{ (void*) command_rcal_select, "setrcal", "select calibration resistor (10, 25.5k, 100k, 1m)" },
 { (void*) IDN, "*IDN?", "returns IDN" },
 { (void*) EIS_start, "EISStart", "returns IDN" },
 { (void*) EIS_stop, "EISStop", "returns IDN" },
