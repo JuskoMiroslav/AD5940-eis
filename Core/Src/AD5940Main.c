@@ -32,7 +32,7 @@ uint32_t AppBuff[APPBUFF_SIZE];
 #define TYPE_UINT8 3
 #define TYPE_BOOL 4
 
-#define CNFLIST_SIZE 35
+#define CNFLIST_SIZE 36
 
 #define OFFSET_SWEEP(member)                                                   \
   (offsetof(AppIMPCfg_Type, SweepCfg) + offsetof(SoftSweepCfg_Type, member))
@@ -90,6 +90,7 @@ configcommand_list_t config_cmd_list[CNFLIST_SIZE] = {
     /* System / control */
     {"PwrMod", TYPE_UINT32, offsetof(AppIMPCfg_Type, PwrMod)},
     {"FifoThresh", TYPE_UINT32, offsetof(AppIMPCfg_Type, FifoThresh)},
+    {"Rcal", TYPE_UINT8, offsetof(AppIMPCfg_Type, RcalSelection)},
 
     /* Software Controlled Sweep Function*/
     {"SweepEn", TYPE_BOOL, OFFSET_SWEEP(SweepEn)},
