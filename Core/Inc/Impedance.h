@@ -19,6 +19,14 @@
 #include "string.h"
 #include "math.h"
 
+/* Calibration Resistor Selection */
+typedef enum {
+	RCAL_10OHM = 10,
+	RCAL_25P5K = 25500,
+	RCAL_100K = 100000,
+	RCAL_1M = 1000000
+} AppIMPRcalSelection;
+
 typedef struct
 {
 	/* Common configurations for all kinds of Application. */
@@ -44,6 +52,7 @@ typedef struct
 	uint32_t PswitchSelCal;
 	uint32_t NswitchSelCal;
 	uint32_t TswitchSelCal;
+	AppIMPRcalSelection RcalSelection; /* Calibration resistor selection */
 	uint32_t PwrMod; /* Control Chip power mode(LP/HP) */
 	uint32_t HstiaRtiaSel; /* Use internal RTIA, select from RTIA_INT_200, RTIA_INT_1K, RTIA_INT_5K, RTIA_INT_10K, RTIA_INT_20K, RTIA_INT_40K, RTIA_INT_80K, RTIA_INT_160K */
 	uint32_t ExcitBufGain; /* Select from  EXCTBUFGAIN_2, EXCTBUFGAIN_0P25 */
@@ -89,11 +98,13 @@ typedef struct
 #define IMPCTRL_STOPSYNC       2
 #define IMPCTRL_GETFREQ        3   /* Get Current frequency of returned data from ISR */
 #define IMPCTRL_SHUTDOWN       4   /* Note: shutdown here means turn off everything and put AFE to hibernate mode. The word 'SHUT DOWN' is only used here. */
+#define IMPCTRL_RCAL_SELECT    5   /* Select calibration resistor */
 
 int32_t AppIMPInit(uint32_t *pBuffer, uint32_t BufferSize);
 AD5940Err AppIMPGetCfg(void *pCfg);
 AD5940Err AppIMPISR(void *pBuff, uint32_t *pCount);
 AD5940Err AppIMPCtrl(uint32_t Command, void *pPara);
 BoolFlag isRunning(void);
+AD5940Err AppIMPSetCalibrationResistor(AppIMPRcalSelection RcalSelect);
 
 #endif

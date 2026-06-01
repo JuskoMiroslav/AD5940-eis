@@ -14,6 +14,7 @@
  *****************************************************************************/
 #include "AD5940.H"
 #include <stdio.h>
+#include "AD5940.h"
 #include "string.h"
 #include "math.h"
 #include "Impedance.h"
@@ -39,12 +40,19 @@ AppIMPCfg_Type AppIMPCfg = { .bParaChanged = bFALSE,
 		.SysClkFreq = 16000000.0,
 		.WuptClkFreq = 32000.0,
 		.AdcClkFreq = 16000000.0,
-		.RcalVal = 180.0,
+		.RcalVal = 100000.0, /* Default to 100k resistor */
 
 		.DswitchSel = SWD_CE0,
 		.PswitchSel = SWP_RE0,
 		.NswitchSel = SWN_SE0,
 		.TswitchSel = SWT_SE0LOAD,
+
+		/* Default calibration resistor configuration (100k) */
+		.DswitchSelCal = SWD_AIN3,
+		.PswitchSelCal = SWP_AIN3,
+		.NswitchSelCal = SWN_AIN0,
+		.TswitchSelCal = SWT_AIN0,
+		.RcalSelection = RCAL_100K,
 
 		.PwrMod = AFEPWR_LP,
 
@@ -174,191 +182,143 @@ float AppIMPGetCurrFreq(void) {
 		return AppIMPCfg.SinFreq;
 }
 
-/* Application initialization */
-static AD5940Err AppIMPSeqCfgGen(void) {
-	AD5940Err error = AD5940ERR_OK;
-	const uint32_t *pSeqCmd;
-	uint32_t SeqLen;
-	AFERefCfg_Type aferef_cfg;
-	HSLoopCfg_Type HsLoopCfg;
+static AD5940Err AppIMPSeqCfgGen(void)
+{
+  AD5940Err error = AD5940ERR_OK;
+  const uint32_t *pSeqCmd;
+  uint32_t SeqLen;
+  AFERefCfg_Type aferef_cfg;
+  HSLoopCfg_Type HsLoopCfg;
 	LPLoopCfg_Type lploop_cfg;
-	DSPCfg_Type dsp_cfg;
-	float sin_freq;
+  DSPCfg_Type dsp_cfg;
+  float sin_freq;
 
-	/* Start sequence generator here */
-	AD5940_SEQGenCtrl(bTRUE);
+  /* Start sequence generator here */
+  AD5940_SEQGenCtrl(bTRUE);
+  
+  AD5940_AFECtrlS(AFECTRL_ALL, bFALSE);  /* Init all to disable state */
 
-	AD5940_AFECtrlS(
-	AFECTRL_ALL, bFALSE); /* Init all to disable state */
-
-	aferef_cfg.HpBandgapEn = bTRUE;
-	aferef_cfg.Hp1V1BuffEn = bTRUE;
-	aferef_cfg.Hp1V8BuffEn = bTRUE;
-	aferef_cfg.Disc1V1Cap = bFALSE;
-	aferef_cfg.Disc1V8Cap = bFALSE;
-	aferef_cfg.Hp1V8ThemBuff = bFALSE;
-	aferef_cfg.Hp1V8Ilimit = bFALSE;
-	aferef_cfg.Lp1V1BuffEn = bFALSE;
-	aferef_cfg.Lp1V8BuffEn = bFALSE;
-	aferef_cfg.LpBandgapEn = bTRUE;
-	aferef_cfg.LpRefBufEn = bTRUE;
-	aferef_cfg.LpRefBoostEn = bFALSE;
-	AD5940_REFCfgS(&aferef_cfg);
-
-	lploop_cfg.LpDacCfg.LpDacSrc =
-	LPDACSRC_MMR;
-	lploop_cfg.LpDacCfg.LpDacSW =
-	LPDACSW_VBIAS2LPPA | LPDACSW_VBIAS2PIN
-			| LPDACSW_VZERO2LPTIA | LPDACSW_VZERO2PIN;
-	lploop_cfg.LpDacCfg.LpDacVzeroMux =
-	LPDACVZERO_6BIT;
-	lploop_cfg.LpDacCfg.LpDacVbiasMux =
-	LPDACVBIAS_12BIT;
-	lploop_cfg.LpDacCfg.LpDacRef =
-	LPDACREF_2P5;
-	lploop_cfg.LpDacCfg.DataRst = bFALSE;
-	lploop_cfg.LpDacCfg.PowerEn = bTRUE;
-	lploop_cfg.LpDacCfg.DacData6Bit =
-			(uint32_t) ((AppIMPCfg.Vzero - 200)
-					/ DAC6BITVOLT_1LSB);
-	lploop_cfg.LpDacCfg.DacData12Bit =
-			(int32_t) ((AppIMPCfg.BiasVolt)
-					/ DAC12BITVOLT_1LSB)
-					+ lploop_cfg.LpDacCfg.DacData6Bit * 64;
-	if (lploop_cfg.LpDacCfg.DacData12Bit
-			> lploop_cfg.LpDacCfg.DacData6Bit * 64)
+  aferef_cfg.HpBandgapEn = bTRUE;
+  aferef_cfg.Hp1V1BuffEn = bTRUE;
+  aferef_cfg.Hp1V8BuffEn = bTRUE;
+  aferef_cfg.Disc1V1Cap = bFALSE;
+  aferef_cfg.Disc1V8Cap = bFALSE;
+  aferef_cfg.Hp1V8ThemBuff = bFALSE;
+  aferef_cfg.Hp1V8Ilimit = bFALSE;
+  aferef_cfg.Lp1V1BuffEn = bFALSE;
+  aferef_cfg.Lp1V8BuffEn = bFALSE;
+  aferef_cfg.LpBandgapEn = bTRUE;
+  aferef_cfg.LpRefBufEn = bTRUE;
+  aferef_cfg.LpRefBoostEn = bFALSE;
+  AD5940_REFCfgS(&aferef_cfg);	
+	
+	lploop_cfg.LpDacCfg.LpDacSrc = LPDACSRC_MMR;
+  lploop_cfg.LpDacCfg.LpDacSW = LPDACSW_VBIAS2LPPA|LPDACSW_VBIAS2PIN|LPDACSW_VZERO2LPTIA|LPDACSW_VZERO2PIN;
+  lploop_cfg.LpDacCfg.LpDacVzeroMux = LPDACVZERO_6BIT;
+  lploop_cfg.LpDacCfg.LpDacVbiasMux = LPDACVBIAS_12BIT;
+  lploop_cfg.LpDacCfg.LpDacRef = LPDACREF_2P5;
+  lploop_cfg.LpDacCfg.DataRst = bFALSE;
+  lploop_cfg.LpDacCfg.PowerEn = bTRUE;
+  lploop_cfg.LpDacCfg.DacData6Bit = (uint32_t)((AppIMPCfg.Vzero-200)/DAC6BITVOLT_1LSB);
+	lploop_cfg.LpDacCfg.DacData12Bit =(int32_t)((AppIMPCfg.BiasVolt)/DAC12BITVOLT_1LSB) + lploop_cfg.LpDacCfg.DacData6Bit*64;
+	if(lploop_cfg.LpDacCfg.DacData12Bit>lploop_cfg.LpDacCfg.DacData6Bit*64)
 		lploop_cfg.LpDacCfg.DacData12Bit--;
-	lploop_cfg.LpAmpCfg.LpAmpPwrMod =
-	LPAMPPWR_NORM;
-	lploop_cfg.LpAmpCfg.LpPaPwrEn = bTRUE;
-	lploop_cfg.LpAmpCfg.LpTiaPwrEn = bTRUE;
-	lploop_cfg.LpAmpCfg.LpTiaRf = AppIMPCfg.LpTiaRf;
-	lploop_cfg.LpAmpCfg.LpTiaRload = AppIMPCfg.LpTiaRl;
-	lploop_cfg.LpAmpCfg.LpTiaRtia = AppIMPCfg.LptiaRtiaSel;
-	lploop_cfg.LpAmpCfg.LpTiaSW =
-	LPTIASW(5) | LPTIASW(
-			2) | LPTIASW(
-			4) | LPTIASW(
-			12) | LPTIASW(
-			13);
+  lploop_cfg.LpDacCfg.LpdacSel=LPDAC0;
+		lploop_cfg.LpAmpCfg.LpAmpPwrMod = LPAMPPWR_NORM;
+  lploop_cfg.LpAmpCfg.LpPaPwrEn = bTRUE;
+  lploop_cfg.LpAmpCfg.LpTiaPwrEn = bTRUE;
+  lploop_cfg.LpAmpCfg.LpTiaRf = AppIMPCfg.LpTiaRf;
+  lploop_cfg.LpAmpCfg.LpTiaRload = AppIMPCfg.LpTiaRl;
+  lploop_cfg.LpAmpCfg.LpTiaRtia = AppIMPCfg.LptiaRtiaSel;
+  lploop_cfg.LpAmpCfg.LpTiaSW = LPTIASW(5)|LPTIASW(2)|LPTIASW(4)|LPTIASW(12)|LPTIASW(13); 
+  lploop_cfg.LpAmpCfg.LpAmpSel=LPAMP0;
+  AD5940_LPLoopCfgS(&lploop_cfg);
+	
+  HsLoopCfg.HsDacCfg.ExcitBufGain = AppIMPCfg.ExcitBufGain;
+  HsLoopCfg.HsDacCfg.HsDacGain = AppIMPCfg.HsDacGain;
+  HsLoopCfg.HsDacCfg.HsDacUpdateRate = AppIMPCfg.HsDacUpdateRate;
 
-	AD5940_LPLoopCfgS(&lploop_cfg);
+  HsLoopCfg.HsTiaCfg.DiodeClose = bFALSE;
+  HsLoopCfg.HsTiaCfg.HstiaBias = HSTIABIAS_1P1;
+  HsLoopCfg.HsTiaCfg.HstiaCtia = 31; /* 31pF + 2pF */
+  HsLoopCfg.HsTiaCfg.HstiaDeRload = HSTIADERLOAD_OPEN;
+  HsLoopCfg.HsTiaCfg.HstiaDeRtia = HSTIADERTIA_OPEN;
+  HsLoopCfg.HsTiaCfg.HstiaRtiaSel = AppIMPCfg.HstiaRtiaSel;
 
-	HsLoopCfg.HsDacCfg.ExcitBufGain =
-			AppIMPCfg.ExcitBufGain;
-	HsLoopCfg.HsDacCfg.HsDacGain = AppIMPCfg.HsDacGain;
-	HsLoopCfg.HsDacCfg.HsDacUpdateRate =
-			AppIMPCfg.HsDacUpdateRate;
+  HsLoopCfg.SWMatCfg.Dswitch = AppIMPCfg.DswitchSel;
+  HsLoopCfg.SWMatCfg.Pswitch = AppIMPCfg.PswitchSel;
+  HsLoopCfg.SWMatCfg.Nswitch = AppIMPCfg.NswitchSel;
+  HsLoopCfg.SWMatCfg.Tswitch = SWT_TRTIA|AppIMPCfg.TswitchSel;
 
-	HsLoopCfg.HsTiaCfg.DiodeClose = bFALSE;
-	HsLoopCfg.HsTiaCfg.HstiaBias =
-	HSTIABIAS_1P1;
-	HsLoopCfg.HsTiaCfg.HstiaCtia = 31; /* 31pF + 2pF */
-	HsLoopCfg.HsTiaCfg.HstiaDeRload =
-	HSTIADERLOAD_OPEN;
-	HsLoopCfg.HsTiaCfg.HstiaDeRtia =
-	HSTIADERTIA_OPEN;
-	HsLoopCfg.HsTiaCfg.HstiaRtiaSel =
-			AppIMPCfg.HstiaRtiaSel;
+  HsLoopCfg.WgCfg.WgType = WGTYPE_SIN;
+  HsLoopCfg.WgCfg.GainCalEn = bTRUE;
+  HsLoopCfg.WgCfg.OffsetCalEn = bTRUE;
+  if(AppIMPCfg.SweepCfg.SweepEn == bTRUE)
+  {
+    AppIMPCfg.FreqofData = AppIMPCfg.SweepCfg.SweepStart;
+    AppIMPCfg.SweepCurrFreq = AppIMPCfg.SweepCfg.SweepStart;
+    AD5940_SweepNext(&AppIMPCfg.SweepCfg, &AppIMPCfg.SweepNextFreq);
+    sin_freq = AppIMPCfg.SweepCurrFreq;
+  }
+  else
+  {
+    sin_freq = AppIMPCfg.SinFreq;
+    AppIMPCfg.FreqofData = sin_freq;
+  }
+  HsLoopCfg.WgCfg.SinCfg.SinFreqWord = AD5940_WGFreqWordCal(sin_freq, AppIMPCfg.SysClkFreq);
+	HsLoopCfg.WgCfg.SinCfg.SinAmplitudeWord = (uint32_t)(AppIMPCfg.DacVoltPP/800.0f*2047 + 0.5f);
+  HsLoopCfg.WgCfg.SinCfg.SinOffsetWord = 0;
+  HsLoopCfg.WgCfg.SinCfg.SinPhaseWord = 0;
+  AD5940_HSLoopCfgS(&HsLoopCfg);
 
-	HsLoopCfg.SWMatCfg.Dswitch = AppIMPCfg.DswitchSel;
-	HsLoopCfg.SWMatCfg.Pswitch = AppIMPCfg.PswitchSel;
-	HsLoopCfg.SWMatCfg.Nswitch = AppIMPCfg.NswitchSel;
-	HsLoopCfg.SWMatCfg.Tswitch =
-	SWT_TRTIA | AppIMPCfg.TswitchSel;
+  dsp_cfg.ADCBaseCfg.ADCMuxN = ADCMUXN_HSTIA_N;
+  dsp_cfg.ADCBaseCfg.ADCMuxP = ADCMUXP_HSTIA_P;
+  dsp_cfg.ADCBaseCfg.ADCPga = AppIMPCfg.AdcPgaGain;
+  
+  memset(&dsp_cfg.ADCDigCompCfg, 0, sizeof(dsp_cfg.ADCDigCompCfg));
+  
+  dsp_cfg.ADCFilterCfg.ADCAvgNum = AppIMPCfg.ADCAvgNum;
+  dsp_cfg.ADCFilterCfg.ADCRate = ADCRATE_800KHZ;	/* Tell filter block clock rate of ADC*/
+  dsp_cfg.ADCFilterCfg.ADCSinc2Osr = AppIMPCfg.ADCSinc2Osr;
+  dsp_cfg.ADCFilterCfg.ADCSinc3Osr = AppIMPCfg.ADCSinc3Osr;
+  dsp_cfg.ADCFilterCfg.BpNotch = bTRUE;
+  dsp_cfg.ADCFilterCfg.BpSinc3 = bFALSE;
+  dsp_cfg.ADCFilterCfg.Sinc2NotchEnable = bTRUE;
+  dsp_cfg.DftCfg.DftNum = AppIMPCfg.DftNum;
+  dsp_cfg.DftCfg.DftSrc = AppIMPCfg.DftSrc;
+  dsp_cfg.DftCfg.HanWinEn = AppIMPCfg.HanWinEn;
+  
+  memset(&dsp_cfg.StatCfg, 0, sizeof(dsp_cfg.StatCfg));
+  AD5940_DSPCfgS(&dsp_cfg);
+    
+  /* Enable all of them. They are automatically turned off during hibernate mode to save power */
+  if(AppIMPCfg.BiasVolt == 0.0f)
+    AD5940_AFECtrlS(AFECTRL_HSTIAPWR|AFECTRL_INAMPPWR|AFECTRL_EXTBUFPWR|\
+                AFECTRL_WG|AFECTRL_DACREFPWR|AFECTRL_HSDACPWR|\
+                AFECTRL_SINC2NOTCH, bTRUE);
+  else
+    AD5940_AFECtrlS(AFECTRL_HSTIAPWR|AFECTRL_INAMPPWR|AFECTRL_EXTBUFPWR|\
+                AFECTRL_WG|AFECTRL_DACREFPWR|AFECTRL_HSDACPWR|\
+                AFECTRL_SINC2NOTCH|AFECTRL_DCBUFPWR, bTRUE);
+    /* Sequence end. */
+  AD5940_SEQGenInsert(SEQ_STOP()); /* Add one extra command to disable sequencer for initialization sequence because we only want it to run one time. */
 
-	HsLoopCfg.WgCfg.WgType = WGTYPE_SIN;
-	HsLoopCfg.WgCfg.GainCalEn = bTRUE;
-	HsLoopCfg.WgCfg.OffsetCalEn = bTRUE;
-	if (AppIMPCfg.SweepCfg.SweepEn == bTRUE) {
-		AppIMPCfg.FreqofData =
-				AppIMPCfg.SweepCfg.SweepStart;
-		AppIMPCfg.SweepCurrFreq =
-				AppIMPCfg.SweepCfg.SweepStart;
-		AD5940_SweepNext(&AppIMPCfg.SweepCfg,
-				&AppIMPCfg.SweepNextFreq);
-		sin_freq = AppIMPCfg.SweepCurrFreq;
-	} else {
-		sin_freq = AppIMPCfg.SinFreq;
-		AppIMPCfg.FreqofData = sin_freq;
-	}
-	HsLoopCfg.WgCfg.SinCfg.SinFreqWord =
-			AD5940_WGFreqWordCal(sin_freq,
-					AppIMPCfg.SysClkFreq);
-	HsLoopCfg.WgCfg.SinCfg.SinAmplitudeWord =
-			(uint32_t) (AppIMPCfg.DacVoltPP / 800.0f * 2047
-					+ 0.5f);
-	HsLoopCfg.WgCfg.SinCfg.SinOffsetWord = 0;
-	HsLoopCfg.WgCfg.SinCfg.SinPhaseWord = 0;
-	AD5940_HSLoopCfgS(&HsLoopCfg);
-
-	dsp_cfg.ADCBaseCfg.ADCMuxN =
-	ADCMUXN_HSTIA_N;
-	dsp_cfg.ADCBaseCfg.ADCMuxP =
-	ADCMUXP_HSTIA_P;
-	dsp_cfg.ADCBaseCfg.ADCPga = AppIMPCfg.AdcPgaGain;
-
-	memset(&dsp_cfg.ADCDigCompCfg, 0,
-			sizeof(dsp_cfg.ADCDigCompCfg));
-
-	dsp_cfg.ADCFilterCfg.ADCAvgNum = AppIMPCfg.ADCAvgNum;
-	dsp_cfg.ADCFilterCfg.ADCRate =
-	ADCRATE_800KHZ; /* Tell filter block clock rate of ADC*/
-	dsp_cfg.ADCFilterCfg.ADCSinc2Osr =
-			AppIMPCfg.ADCSinc2Osr;
-	dsp_cfg.ADCFilterCfg.ADCSinc3Osr =
-			AppIMPCfg.ADCSinc3Osr;
-	dsp_cfg.ADCFilterCfg.BpNotch = bTRUE;
-	dsp_cfg.ADCFilterCfg.BpSinc3 = bFALSE;
-	dsp_cfg.ADCFilterCfg.Sinc2NotchEnable = bTRUE;
-	dsp_cfg.DftCfg.DftNum = AppIMPCfg.DftNum;
-	dsp_cfg.DftCfg.DftSrc = AppIMPCfg.DftSrc;
-	dsp_cfg.DftCfg.HanWinEn = AppIMPCfg.HanWinEn;
-
-	memset(&dsp_cfg.StatCfg, 0, sizeof(dsp_cfg.StatCfg));
-	AD5940_DSPCfgS(&dsp_cfg);
-
-	/* Enable all of them. They are automatically turned off during hibernate mode to save power */
-	if (AppIMPCfg.BiasVolt == 0.0f)
-		AD5940_AFECtrlS(
-				AFECTRL_HSTIAPWR | AFECTRL_INAMPPWR
-						| AFECTRL_EXTBUFPWR |\
- AFECTRL_WG
-						| AFECTRL_DACREFPWR
-						| AFECTRL_HSDACPWR
-						|\
- AFECTRL_SINC2NOTCH, bTRUE);
-	else
-		AD5940_AFECtrlS(
-				AFECTRL_HSTIAPWR | AFECTRL_INAMPPWR
-						| AFECTRL_EXTBUFPWR |\
- AFECTRL_WG
-						| AFECTRL_DACREFPWR
-						| AFECTRL_HSDACPWR
-						|\
- AFECTRL_SINC2NOTCH
-						| AFECTRL_DCBUFPWR, bTRUE);
-	/* Sequence end. */
-	AD5940_SEQGenInsert(SEQ_STOP()); /* Add one extra command to disable sequencer for initialization sequence because we only want it to run one time. */
-
-	/* Stop here */
-	error = AD5940_SEQGenFetchSeq(&pSeqCmd, &SeqLen);
-	AD5940_SEQGenCtrl(bFALSE); /* Stop sequencer generator */
-	if (error == AD5940ERR_OK) {
-		AppIMPCfg.InitSeqInfo.SeqId =
-		SEQID_1;
-		AppIMPCfg.InitSeqInfo.SeqRamAddr =
-				AppIMPCfg.SeqStartAddr;
-		AppIMPCfg.InitSeqInfo.pSeqCmd = pSeqCmd;
-		AppIMPCfg.InitSeqInfo.SeqLen = SeqLen;
-		/* Write command to SRAM */
-		AD5940_SEQCmdWrite(AppIMPCfg.InitSeqInfo.SeqRamAddr,
-				pSeqCmd, SeqLen);
-	} else
-		return error; /* Error */
-	return AD5940ERR_OK;
+  /* Stop here */
+  error = AD5940_SEQGenFetchSeq(&pSeqCmd, &SeqLen);
+  AD5940_SEQGenCtrl(bFALSE); /* Stop sequencer generator */
+  if(error == AD5940ERR_OK)
+  {
+    AppIMPCfg.InitSeqInfo.SeqId = SEQID_1;
+    AppIMPCfg.InitSeqInfo.SeqRamAddr = AppIMPCfg.SeqStartAddr;
+    AppIMPCfg.InitSeqInfo.pSeqCmd = pSeqCmd;
+    AppIMPCfg.InitSeqInfo.SeqLen = SeqLen;
+    /* Write command to SRAM */
+    AD5940_SEQCmdWrite(AppIMPCfg.InitSeqInfo.SeqRamAddr, pSeqCmd, SeqLen);
+  }
+  else
+    return error; /* Error */
+  return AD5940ERR_OK;
 }
-
 static AD5940Err AppIMPSeqMeasureGen(void) {
 	AD5940Err error = AD5940ERR_OK;
 	const uint32_t *pSeqCmd;
@@ -397,6 +357,7 @@ static AD5940Err AppIMPSeqMeasureGen(void) {
 	LpAmpCfg.LpTiaSW =
 	LPTIASW(
 			7) | LPTIASW(8) | LPTIASW(12) | LPTIASW(13);
+	LpAmpCfg.LpAmpSel=LPAMP0;
 	AD5940_LPAMPCfgS(&LpAmpCfg);
 	/* Sensor + Rload Measurement */
 	sw_cfg.Dswitch = AppIMPCfg.DswitchSel;
@@ -456,10 +417,10 @@ static AD5940Err AppIMPSeqMeasureGen(void) {
 			bFALSE);
 
 	/* RCAL Measurement */
-	sw_cfg.Dswitch = SWD_RCAL0;
-	sw_cfg.Pswitch = SWP_RCAL0;
-	sw_cfg.Nswitch = SWN_RCAL1;
-	sw_cfg.Tswitch = SWT_RCAL1 | SWT_TRTIA;
+	sw_cfg.Dswitch = AppIMPCfg.DswitchSelCal;  /* Calibration Resistor High Side */
+	sw_cfg.Pswitch = AppIMPCfg.PswitchSelCal;
+	sw_cfg.Nswitch = AppIMPCfg.NswitchSelCal;  /* Calibration Resistor Low Side */
+	sw_cfg.Tswitch = AppIMPCfg.TswitchSelCal | SWT_TRTIA; /* Return path to HSTIA */
 	AD5940_SWMatrixCfgS(&sw_cfg);
 	/* Reconnect LP loop */
 	LpAmpCfg.LpTiaRtia = AppIMPCfg.LptiaRtiaSel; /* Disconnect Rtia to avoid RC filter discharge */
@@ -791,4 +752,58 @@ AD5940Err AppIMPISR(void *pBuff, uint32_t *pCount) {
 }
 BoolFlag isRunning(void){
 	return AppIMPCfg.bIsRunning;
+}
+
+/**
+ * @brief Set the calibration resistor and update switch configuration accordingly
+ * @param RcalSelect The calibration resistor to use (10, 25.5k, 100k, or 1M ohms)
+ * @return AD5940ERR_OK if successful, AD5940ERR_PARA if invalid resistor value
+ */
+AD5940Err AppIMPSetCalibrationResistor(AppIMPRcalSelection RcalSelect)
+{
+	switch(RcalSelect)
+	{
+		case RCAL_10OHM:
+			/* 10 ohm resistor connected to AIN2 */
+			AppIMPCfg.DswitchSelCal = SWD_AIN2;
+			AppIMPCfg.PswitchSelCal = SWP_AIN2;
+			AppIMPCfg.NswitchSelCal = SWN_AIN0;
+			AppIMPCfg.TswitchSelCal = SWT_AIN0;
+			AppIMPCfg.RcalVal = 10.0f;
+			break;
+
+		case RCAL_25P5K:
+			/* 25.5k ohm resistor connected to AIN1 */
+			AppIMPCfg.DswitchSelCal = SWD_AIN1;
+			AppIMPCfg.PswitchSelCal = SWP_AIN1;
+			AppIMPCfg.NswitchSelCal = SWN_AIN0;
+			AppIMPCfg.TswitchSelCal = SWT_AIN0;
+			AppIMPCfg.RcalVal = 25500.0f;
+			break;
+
+		case RCAL_100K:
+			/* 100k ohm resistor connected to AIN3 */
+			AppIMPCfg.DswitchSelCal = SWD_AIN3;
+			AppIMPCfg.PswitchSelCal = SWP_AIN3;
+			AppIMPCfg.NswitchSelCal = SWN_AIN0;
+			AppIMPCfg.TswitchSelCal = SWT_AIN0;
+			AppIMPCfg.RcalVal = 100000.0f;
+			break;
+
+		case RCAL_1M:
+			/* 1M ohm resistor (internal RCAL) */
+			AppIMPCfg.DswitchSelCal = SWD_RCAL0;
+			AppIMPCfg.PswitchSelCal = SWP_RCAL0;
+			AppIMPCfg.NswitchSelCal = SWN_RCAL1;
+			AppIMPCfg.TswitchSelCal = SWT_RCAL1;
+			AppIMPCfg.RcalVal = 1000000.0f;
+			break;
+
+		default:
+			return AD5940ERR_PARA;
+	}
+
+	AppIMPCfg.RcalSelection = RcalSelect;
+	AppIMPCfg.bParaChanged = bTRUE;
+	return AD5940ERR_OK;
 }
