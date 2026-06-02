@@ -4016,6 +4016,7 @@ AD5940Err AD5940_HSDACCal(HSDACCal_Type *pCalCfg)
   AD5940_ADCBaseCfgS(&adc_base);
   
   /* Step0.2 Configure LPDAC to connect VZERO to HSTIA */
+  lploop_cfg.LpAmpCfg.LpAmpSel = LPAMP0;
   lploop_cfg.LpDacCfg.LpdacSel = LPDAC0;
   lploop_cfg.LpDacCfg.DacData12Bit = 0x7C0;
   lploop_cfg.LpDacCfg.DacData6Bit = 0x1F;  
