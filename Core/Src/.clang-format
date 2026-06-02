@@ -1,0 +1,18 @@
+---
+Language: Cpp
+BasedOnStyle: LLVM
+
+# Keeps arguments aligned when wrapping to a new line
+AlignAfterOpenBracket: Align
+
+# Prevents the formatter from aggressively breaking lines too early
+ColumnLimit: 100
+
+# BinPacking: false forces each argument onto its own line if they don't fit on one,
+# instead of packing as many as possible onto random lines.
+BinPackArguments: false
+BinPackParameters: false
+
+# Fixes formatting around the bitwise OR (|) operators
+AlignOperands: Align
+...

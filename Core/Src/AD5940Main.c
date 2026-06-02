@@ -32,7 +32,7 @@ uint32_t AppBuff[APPBUFF_SIZE];
 #define TYPE_UINT8 3
 #define TYPE_BOOL 4
 
-#define CNFLIST_SIZE 35
+#define CNFLIST_SIZE 36
 
 #define OFFSET_SWEEP(member)                                                   \
   (offsetof(AppIMPCfg_Type, SweepCfg) + offsetof(SoftSweepCfg_Type, member))
@@ -90,6 +90,7 @@ configcommand_list_t config_cmd_list[CNFLIST_SIZE] = {
     /* System / control */
     {"PwrMod", TYPE_UINT32, offsetof(AppIMPCfg_Type, PwrMod)},
     {"FifoThresh", TYPE_UINT32, offsetof(AppIMPCfg_Type, FifoThresh)},
+    {"Rcal", TYPE_UINT8, offsetof(AppIMPCfg_Type, RcalSelection)},
 
     /* Software Controlled Sweep Function*/
     {"SweepEn", TYPE_BOOL, OFFSET_SWEEP(SweepEn)},
@@ -309,6 +310,8 @@ uint32_t command_set_cfg(char *param1_str, double para2) {
       }
       //			AD5940PlatformCfg();
       //			AD5940ImpedanceStructInit();
+      if(pImpedanceCfg->SweepCfg.SweepEn)
+        pImpedanceCfg->SweepCfg.SweepIndex = 0;
       pImpedanceCfg->bParaChanged = bTRUE;
       AppIMPInit(AppBuff,
                  APPBUFF_SIZE); /* Initialize IMP application. Provide a buffer,
@@ -372,6 +375,72 @@ uint32_t IDN(uint32_t para1, uint32_t para2) {
   send_packet("IDN", data);
   return 0;
 }
+
+uint32_t command_rcal_select(char *param1_str, double para2) {
+  AppIMPRcalSelection rcal_value;
+  AD5940Err result;
+  char data[100];
+
+  if (param1_str == NULL || *param1_str == '\0') {
+    printf("Usage: setrcal <10|25.5k|100k|1m>\r\n");
+    printf("  10   - 10 ohm resistor (AIN2)\r\n");
+    printf("  25.5k - 25.5k ohm resistor (AIN1)\r\n");
+    printf("  100k - 100k ohm resistor (AIN3)\r\n");
+    printf("  1m   - 1M ohm resistor (internal)\r\n");
+    return 1;
+  }
+
+  /* Parse resistor value */
+  if (strcmp(param1_str, "10") == 0) {
+    rcal_value = RCAL_10OHM;
+  } else if (strcmp(param1_str, "25.5k") == 0 || strcmp(param1_str, "25.5K") == 0) {
+    rcal_value = RCAL_25P5K;
+  } else if (strcmp(param1_str, "100k") == 0 || strcmp(param1_str, "100K") == 0) {
+    rcal_value = RCAL_100K;
+  } else if (strcmp(param1_str, "1m") == 0 || strcmp(param1_str, "1M") == 0) {
+    rcal_value = RCAL_1M;
+  } else {
+    printf("Invalid resistor value: %s\r\n", param1_str);
+    printf("Valid values: 10, 25.5k, 100k, 1m\r\n");
+    return 1;
+  }
+
+  /* Stop current measurement */
+  AppIMPCtrl(IMPCTRL_STOPNOW, 0);
+
+  /* Select the calibration resistor */
+  result = AppIMPSetCalibrationResistor(rcal_value);
+
+  if (result == AD5940ERR_OK) {
+    /* Re-initialize with new configuration */
+    AppIMPInit(AppBuff, APPBUFF_SIZE);
+
+    /* Send confirmation message */
+    switch (rcal_value) {
+      case RCAL_10OHM:
+        snprintf(data, sizeof(data), "RCAL=10 Ohm");
+        break;
+      case RCAL_25P5K:
+        snprintf(data, sizeof(data), "RCAL=25.5k Ohm");
+        break;
+      case RCAL_100K:
+        snprintf(data, sizeof(data), "RCAL=100k Ohm");
+        break;
+      case RCAL_1M:
+        snprintf(data, sizeof(data), "RCAL=1M Ohm");
+        break;
+      default:
+        snprintf(data, sizeof(data), "RCAL=Unknown");
+    }
+    send_packet("RCAL", data);
+    return 0;
+  } else {
+    snprintf(data, sizeof(data), "Failed to set RCAL");
+    send_packet("ERR", data);
+    return 1;
+  }
+}
+
 static AD5940Err AppADCPgaCal(void) {
   ADCPGACal_Type pga_cal;
 
