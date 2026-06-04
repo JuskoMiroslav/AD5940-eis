@@ -10,7 +10,7 @@
  This software is proprietary to Analog Devices, Inc. and its licensors.
  By using this software you agree to the terms of the associated
  Analog Devices Software License Agreement.
- 
+
  *****************************************************************************/
 #ifndef _IMPEDANCESEQUENCES_H_
 #define _IMPEDANCESEQUENCES_H_
@@ -100,10 +100,12 @@ typedef struct
 #define IMPCTRL_SHUTDOWN       4   /* Note: shutdown here means turn off everything and put AFE to hibernate mode. The word 'SHUT DOWN' is only used here. */
 #define IMPCTRL_RCAL_SELECT    5   /* Select calibration resistor */
 
+
 int32_t AppIMPInit(uint32_t *pBuffer, uint32_t BufferSize);
-AD5940Err AppIMPGetCfg(void *pCfg);
-AD5940Err AppIMPISR(void *pBuff, uint32_t *pCount);
-AD5940Err AppIMPCtrl(uint32_t Command, void *pPara);
+int32_t AppIMPGetCfg(void *pCfg);
+uint8_t calc_checksum(const char *data);
+int32_t AppIMPISR(void *pBuff, uint32_t *pCount);
+int32_t AppIMPCtrl(uint32_t Command, void *pPara);
 BoolFlag isRunning(void);
 AD5940Err AppIMPSetCalibrationResistor(AppIMPRcalSelection RcalSelect);
 

@@ -112,15 +112,14 @@ int32_t ImpedanceShowResult(uint32_t *pData, uint32_t DataCount) {
   float freq;
   char data[200];
 
-  fImpPol_Type *pImp = (fImpPol_Type *)pData;
+  fImpCalCar_Type *pImp = (fImpCalCar_Type *)pData;
 
   if (isRunning() == bTRUE) {
     AppIMPCtrl(IMPCTRL_GETFREQ, &freq);
 
     for (int i = 0; i < DataCount; i++) {
 
-      snprintf(data, sizeof(data), "%.2f,%.6f,%.6f", freq, pImp[i].Magnitude,
-               pImp[i].Phase * 180 / MATH_PI);
+      snprintf(data, sizeof(data), "%.2f,%.6f,%.6f,%.6f,%.6f", freq, pImp[i].RzMag, pImp[i].RzPhase, pImp[i].RcalMag,pImp[i].RcalPhase);
 
       send_packet("IMP", data);
     }
@@ -145,7 +144,7 @@ static int32_t AD5940PlatformCfg(void) {
   clk_cfg.HfOSC32MHzMode = bFALSE;
   clk_cfg.HFOSCEn = bFALSE;
   clk_cfg.HFXTALEn = bTRUE;
-  clk_cfg.LFOSCEn = bTRUE;
+  clk_cfg.LFOSCEn = bFALSE;
   AD5940_CLKCfg(&clk_cfg);
   /* Step2. Configure FIFO and Sequencer*/
   fifo_cfg.FIFOEn = bFALSE;
@@ -153,7 +152,7 @@ static int32_t AD5940PlatformCfg(void) {
   fifo_cfg.FIFOSize =
       FIFOSIZE_4KB; /* 4kB for FIFO, The reset 2kB for sequencer */
   fifo_cfg.FIFOSrc = FIFOSRC_DFT;
-  fifo_cfg.FIFOThresh = 6;
+  fifo_cfg.FIFOThresh = 4;
   AD5940_FIFOCfg(&fifo_cfg);
   fifo_cfg.FIFOEn = bTRUE;
   AD5940_FIFOCfg(&fifo_cfg);
@@ -184,9 +183,9 @@ void AD5940ImpedanceStructInit(void) {
   pImpedanceCfg->SeqStartAddr = 0;
   pImpedanceCfg->MaxSeqLen = 512; /* @todo add checker in function */
 
-  pImpedanceCfg->RcalVal = 10.0;
-  pImpedanceCfg->FifoThresh = 6;
-  pImpedanceCfg->SinFreq = 10000.0;
+  pImpedanceCfg->RcalVal = 820000.0;
+  pImpedanceCfg->FifoThresh = 4;
+  pImpedanceCfg->SinFreq = 1000.0;
 
   /* Configure Excitation Waveform
    *
@@ -195,35 +194,31 @@ void AD5940ImpedanceStructInit(void) {
    *		= 300 * 0.25 * 0.2 = 15mV pk-pk
    *
    */
-  pImpedanceCfg->DacVoltPP = 500; /* Maximum value is 600mV*/
-  pImpedanceCfg->ExcitBufGain = EXCITBUFGAIN_0P25;
-  pImpedanceCfg->HsDacGain = HSDACGAIN_0P2;
-  pImpedanceCfg->ADCRefVolt = 1.82; /* ADC reference voltage in V, used for gain calculation in PGA
-               calibration. Should be set according to actual hardware design.
-             */
+  pImpedanceCfg->DacVoltPP = 300; /* Maximum value is 600mV*/
+  pImpedanceCfg->ExcitBufGain = EXCITBUFGAIN_2;
+  pImpedanceCfg->HsDacGain = HSDACGAIN_1;
 
   /* Set switch matrix to onboard(EVAL-AD5940ELECZ) gas sensor. */
   pImpedanceCfg->DswitchSel = SWD_CE0;
   pImpedanceCfg->PswitchSel = SWP_RE0;
-  pImpedanceCfg->NswitchSel = SWN_SE0LOAD;
-  pImpedanceCfg->TswitchSel = SWT_SE0LOAD;
+  pImpedanceCfg->NswitchSel =  SWN_AIN0;//SWN_SE0LOAD;
+  pImpedanceCfg->TswitchSel =  SWT_AIN0;//SWT_SE0LOAD;
   /* The dummy sensor is as low as 5kOhm. We need to make sure RTIA is small
    * enough that HSTIA won't be saturated. */
-  pImpedanceCfg->HstiaRtiaSel = HSTIARTIA_200;
+  pImpedanceCfg->HstiaRtiaSel = HSTIARTIA_160K;
   pImpedanceCfg->BiasVolt = 0.0;
   /* Configure the sweep function. */
   pImpedanceCfg->SweepCfg.SweepEn = bFALSE;
   pImpedanceCfg->SweepCfg.SweepStart = 100.0f; /* Start from 1kHz */
-  pImpedanceCfg->SweepCfg.SweepStop = 200e3f;  /* Stop at 100kHz */
+  pImpedanceCfg->SweepCfg.SweepStop = 100e3f;  /* Stop at 100kHz */
   pImpedanceCfg->SweepCfg.SweepPoints = 101;   /* Points is 101 */
   pImpedanceCfg->SweepCfg.SweepLog = bTRUE;
   /* Configure Power Mode. Use HP mode if frequency is higher than 80kHz. */
-  pImpedanceCfg->PwrMod = AFEPWR_HP;
+  pImpedanceCfg->PwrMod = AFEPWR_LP;
   /* Configure filters if necessary */
   pImpedanceCfg->ADCSinc3Osr =
-      ADCSINC3OSR_2; /* Sample rate is 800kSPS/OSR = 400kSPS */
-  pImpedanceCfg->ADCSinc2Osr = ADCSINC2OSR_22;
-  pImpedanceCfg->DftNum = DFTNUM_8192;
+      ADCSINC3OSR_4; /* Sample rate is 800kSPS/2 = 400kSPS */
+  pImpedanceCfg->DftNum = DFTNUM_16384;
   pImpedanceCfg->DftSrc = DFTSRC_SINC3;
 }
 
@@ -232,8 +227,8 @@ void AD5940_Main(void) {
   AD5940PlatformCfg();
   AD5940ImpedanceStructInit();
 
-  AppADCPgaCal();          /* Kalibrácia referencie a zisku ADC */
-  AppHSDACCal();		 /* Kalibrácia zisku HSDAC */
+  // AppADCPgaCal();          /* Kalibrácia referencie a zisku ADC */
+  // AppHSDACCal();		 /* Kalibrácia zisku HSDAC */
 
   AppIMPInit(AppBuff,
              APPBUFF_SIZE); /* Initialize IMP application. Provide a buffer,
@@ -310,7 +305,7 @@ uint32_t command_set_cfg(char *param1_str, double para2) {
       }
       //			AD5940PlatformCfg();
       //			AD5940ImpedanceStructInit();
-      if(pImpedanceCfg->SweepCfg.SweepEn)
+      if (pImpedanceCfg->SweepCfg.SweepEn)
         pImpedanceCfg->SweepCfg.SweepIndex = 0;
       pImpedanceCfg->bParaChanged = bTRUE;
       AppIMPInit(AppBuff,
@@ -376,70 +371,6 @@ uint32_t IDN(uint32_t para1, uint32_t para2) {
   return 0;
 }
 
-uint32_t command_rcal_select(char *param1_str, double para2) {
-  AppIMPRcalSelection rcal_value;
-  AD5940Err result;
-  char data[100];
-
-  if (param1_str == NULL || *param1_str == '\0') {
-    printf("Usage: setrcal <10|25.5k|100k|1m>\r\n");
-    printf("  10   - 10 ohm resistor (AIN2)\r\n");
-    printf("  25.5k - 25.5k ohm resistor (AIN1)\r\n");
-    printf("  100k - 100k ohm resistor (AIN3)\r\n");
-    printf("  1m   - 1M ohm resistor (internal)\r\n");
-    return 1;
-  }
-
-  /* Parse resistor value */
-  if (strcmp(param1_str, "10") == 0) {
-    rcal_value = RCAL_10OHM;
-  } else if (strcmp(param1_str, "25.5k") == 0 || strcmp(param1_str, "25.5K") == 0) {
-    rcal_value = RCAL_25P5K;
-  } else if (strcmp(param1_str, "100k") == 0 || strcmp(param1_str, "100K") == 0) {
-    rcal_value = RCAL_100K;
-  } else if (strcmp(param1_str, "1m") == 0 || strcmp(param1_str, "1M") == 0) {
-    rcal_value = RCAL_1M;
-  } else {
-    printf("Invalid resistor value: %s\r\n", param1_str);
-    printf("Valid values: 10, 25.5k, 100k, 1m\r\n");
-    return 1;
-  }
-
-  /* Stop current measurement */
-  AppIMPCtrl(IMPCTRL_STOPNOW, 0);
-
-  /* Select the calibration resistor */
-  result = AppIMPSetCalibrationResistor(rcal_value);
-
-  if (result == AD5940ERR_OK) {
-    /* Re-initialize with new configuration */
-    AppIMPInit(AppBuff, APPBUFF_SIZE);
-
-    /* Send confirmation message */
-    switch (rcal_value) {
-      case RCAL_10OHM:
-        snprintf(data, sizeof(data), "RCAL=10 Ohm");
-        break;
-      case RCAL_25P5K:
-        snprintf(data, sizeof(data), "RCAL=25.5k Ohm");
-        break;
-      case RCAL_100K:
-        snprintf(data, sizeof(data), "RCAL=100k Ohm");
-        break;
-      case RCAL_1M:
-        snprintf(data, sizeof(data), "RCAL=1M Ohm");
-        break;
-      default:
-        snprintf(data, sizeof(data), "RCAL=Unknown");
-    }
-    send_packet("RCAL", data);
-    return 0;
-  } else {
-    snprintf(data, sizeof(data), "Failed to set RCAL");
-    send_packet("ERR", data);
-    return 1;
-  }
-}
 
 static AD5940Err AppADCPgaCal(void) {
   ADCPGACal_Type pga_cal;
@@ -473,6 +404,7 @@ static AD5940Err AppADCPgaCal(void) {
   AD5940_ADCPGACal(&pga_cal);
   return AD5940ERR_OK;
 }
+
 static AD5940Err AppHSDACCal() {
   HSDACCal_Type hsdac_cal;
 

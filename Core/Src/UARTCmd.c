@@ -12,13 +12,14 @@
  This software is proprietary to Analog Devices, Inc. and its licensors.
  By using this software you agree to the terms of the associated
  Analog Devices Software License Agreement.
- 
+
  *****************************************************************************/
 #include "stdint.h"
 #include "string.h"
 #include "stdio.h"
 #include <stdlib.h>
 #include "math.h"
+#include "Impedance.h"
 #define LINEBUFF_SIZE 128
 #define CMDTABLE_SIZE 7
 
@@ -100,13 +101,13 @@ void UARTCmd_RemoveSpaces(void)
 	}
 }
 
-uint8_t calc_checksum(const char *data) {
-    uint8_t chk = 0;
-    while (*data) {
-        chk ^= (uint8_t)(*data++);
-    }
-    return chk;
-}
+// uint8_t calc_checksum(const char *data) {
+//     uint8_t chk = 0;
+//     while (*data) {
+//         chk ^= (uint8_t)(*data++);
+//     }
+//     return chk;
+// }
 void send_packet(const char *type, const char *data) {
     char buffer[256];
     char frame[300];

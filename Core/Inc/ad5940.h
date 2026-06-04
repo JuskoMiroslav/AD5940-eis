@@ -1,12 +1,12 @@
-/**  
+/**
  * @file       ad5940.h
- * @brief      AD5940 library. This file contains all AD5940 library functions. 
+ * @brief      AD5940 library. This file contains all AD5940 library functions.
  * @author     ADI
  * @date       March 2019
  * @par Revision History:
- * 
+ *
  * Copyright (c) 2017-2019 Analog Devices, Inc. All Rights Reserved.
- * 
+ *
  * This software is proprietary to Analog Devices, Inc. and its licensors.
  * By using this software you agree to the terms of the associated
  * Analog Devices Software License Agreement.
@@ -20,7 +20,7 @@
   * @{
   */
 
-/** 
+/**
  * Select the correct chip.
  * Recommend to define this in your compiler.
  * */
@@ -47,7 +47,7 @@
 #error Please select the correct chip by define CHIPSEL_M355 or CHIPSEL_594X.
 #endif
 
-/** 
+/**
  * @cond
  * @defgroup AD5940RegistersBitfields
  * @brief All AD5940 registers and bitfields definition.
@@ -95,7 +95,7 @@
 #define REG_AGPIO_GP0TGL                     0x00000020            /*  AGPIO GPIO Port 0 Pin Toggle */
 
 /* ============================================================================================================================
-        AGPIO Register BitMasks, Positions & Enumerations 
+        AGPIO Register BitMasks, Positions & Enumerations
    ============================================================================================================================ */
 /* -------------------------------------------------------------------------------------------------------------------------
           AGPIO_GP0CON                         Pos/Masks         Description
@@ -167,7 +167,7 @@
 
 
 /* ============================================================================================================================
-        
+
    ============================================================================================================================ */
 
 /* ============================================================================================================================
@@ -191,7 +191,7 @@
 #define REG_AFECON_TRIGSEQ                   0x00000430            /*  AFECON Trigger Sequence */
 
 /* ============================================================================================================================
-        AFECON Register BitMasks, Positions & Enumerations 
+        AFECON Register BitMasks, Positions & Enumerations
    ============================================================================================================================ */
 /* -------------------------------------------------------------------------------------------------------------------------
           AFECON_ADIID                         Pos/Masks         Description
@@ -270,7 +270,7 @@
 #define REG_AFEWDT_WDTMINLD                  0x0000091C            /*  AFEWDT Minimum Load Value */
 
 /* ============================================================================================================================
-        AFEWDT Register BitMasks, Positions & Enumerations 
+        AFEWDT Register BitMasks, Positions & Enumerations
    ============================================================================================================================ */
 /* -------------------------------------------------------------------------------------------------------------------------
           AFEWDT_WDTLD                         Pos/Masks         Description
@@ -395,7 +395,7 @@
 #define REG_WUPTMR_SEQ3SLEEPH                0x00000844            /*  WUPTMR SEQ3 STimeH (MSB) */
 
 /* ============================================================================================================================
-        WUPTMR Register BitMasks, Positions & Enumerations 
+        WUPTMR Register BitMasks, Positions & Enumerations
    ============================================================================================================================ */
 /* -------------------------------------------------------------------------------------------------------------------------
           WUPTMR_CON                           Pos/Masks         Description
@@ -607,7 +607,7 @@
 #define REG_ALLON_CLKEN0                     0x00000A70            /*  ALLON 32KHz Peripheral Clock Enable */
 
 /* ============================================================================================================================
-        ALLON Register BitMasks, Positions & Enumerations 
+        ALLON Register BitMasks, Positions & Enumerations
    ============================================================================================================================ */
 /* -------------------------------------------------------------------------------------------------------------------------
           ALLON_PWRMOD                         Pos/Masks         Description
@@ -769,7 +769,7 @@
 #define REG_AGPT0_INTEN                      0x00000D28            /*  AGPT0 Interrupt Enable */
 
 /* ============================================================================================================================
-        AGPT0 Register BitMasks, Positions & Enumerations 
+        AGPT0 Register BitMasks, Positions & Enumerations
    ============================================================================================================================ */
 /* -------------------------------------------------------------------------------------------------------------------------
           AGPT0_LD0                            Pos/Masks         Description
@@ -888,7 +888,7 @@
 #define REG_AGPT1_INTEN1                     0x00000E28            /*  AGPT1 Interrupt Enable */
 
 /* ============================================================================================================================
-        AGPT1 Register BitMasks, Positions & Enumerations 
+        AGPT1 Register BitMasks, Positions & Enumerations
    ============================================================================================================================ */
 /* -------------------------------------------------------------------------------------------------------------------------
           AGPT1_LD1                            Pos/Masks         Description
@@ -1005,7 +1005,7 @@
 #define REG_AFECRC_INTSTA                    0x00001028            /*  AFECRC CRC Error Interrupt Status Bit */
 
 /* ============================================================================================================================
-        AFECRC Register BitMasks, Positions & Enumerations 
+        AFECRC Register BitMasks, Positions & Enumerations
    ============================================================================================================================ */
 /* -------------------------------------------------------------------------------------------------------------------------
           AFECRC_CTL                           Pos/Masks         Description
@@ -1077,7 +1077,7 @@
 
 
 /* ============================================================================================================================
-        
+
    ============================================================================================================================ */
 
 /* ============================================================================================================================
@@ -1302,7 +1302,7 @@
 #define REG_AFE_ADCBUFCON                    0x0000238C            /*  AFE Configure ADC Input Buffer */
 
 /* ============================================================================================================================
-        AFE Register BitMasks, Positions & Enumerations 
+        AFE Register BitMasks, Positions & Enumerations
    ============================================================================================================================ */
 /* -------------------------------------------------------------------------------------------------------------------------
           AFE_AFECON                           Pos/Masks         Description
@@ -2590,7 +2590,7 @@
 #define REG_INTC_INTCFLAG1                   0x00003014            /*  INTC INT1 FLAG Register */
 
 /* ============================================================================================================================
-        INTC Register BitMasks, Positions & Enumerations 
+        INTC Register BitMasks, Positions & Enumerations
    ============================================================================================================================ */
 /* -------------------------------------------------------------------------------------------------------------------------
           INTC_INTCPOL                         Pos/Masks         Description
@@ -2937,7 +2937,7 @@
 #define BITM_INTC_INTCFLAG1_FLAG2            0x00000004
 #define BITM_INTC_INTCFLAG1_FLAG1            0x00000002
 #define BITM_INTC_INTCFLAG1_FLAG0            0x00000001
-/** 
+/**
  * @} AD5940RegistersBitfields
  * @endcond
  * */
@@ -2947,7 +2947,7 @@
  * @{
  *    @defgroup SPI_Block_Const
  *    @{
- * 
+ *
 */
 #define SPICMD_SETADDR    0x20      /**< set the register address that is going to operate. */
 #define SPICMD_READREG    0x6d      /**< command to read register */
@@ -2958,27 +2958,27 @@
  * @} SPI_Block
 */
 
-/** 
+/**
  * @addtogroup AFE_Control
  * @{
  * */
 
-/** 
+/**
  * @defgroup AFE_Control_Const
  * @{
  * */
 
-/** 
+/**
  * @defgroup AFEINTC_Const
  * @brief AD5940 has two interrupt controller INTC0 and INTC1. Both of them have ability to generate interrupt signal from GPIO.
  * @{
  * */
 /* AFE Interrupt controller selection */
-#define AFEINTC_0                   0   /**< Interrupt controller 0 */     
+#define AFEINTC_0                   0   /**< Interrupt controller 0 */
 #define AFEINTC_1                   1   /**< Interrupt controller 1 */
 /** @} */
 
-/** 
+/**
  * @defgroup AFEINTC_SRC_Const
  * @brief Interrupt source selection. These sources are defined as bit mask. They are available for register INTCCLR, INTCSEL0/1, INTCFLAG0/1
  * @{
@@ -3020,7 +3020,7 @@
 
 /**
  * @defgroup AFEPWR_Const
- * @brief AFE power mode. 
+ * @brief AFE power mode.
  * @details It will set the whole analog system power mode include HSDAC, Excitation Buffer, HSTIA, ADC front-buffer etc.
  * @{
 */
@@ -3032,7 +3032,7 @@
 
 /**
  * @defgroup AFEBW_Const
- * @brief AFE system bandwidth. 
+ * @brief AFE system bandwidth.
  * @details It will set the whole analog bandwidth include HSDAC, Excitation Buffer, HSTIA, ADC front-buffer etc.
  * @{
 */
@@ -3050,7 +3050,7 @@
  * @details This is all the available control signal for function @ref AD5940_AFECtrlS
  * @warning Bit field in register AFECON has some opposite meaning as below definitions. We use all positive word here
  *          like HPREF instead of HPREFDIS. This set is only used in function @ref AD5940_AFECtrlS, the second parameter
- *          decides whether enable it or disable it. 
+ *          decides whether enable it or disable it.
  * @{
 */
 #define AFECTRL_HPREFPWR            (1L<<5)    /**< High power reference on-off control */
@@ -3059,16 +3059,16 @@
 #define AFECTRL_ADCCNV              (1L<<8)    /**< Start ADC convert enable */
 #define AFECTRL_EXTBUFPWR           (1L<<9)    /**< Excitation buffer power control */
 #define AFECTRL_INAMPPWR            (1L<<10)   /**< Excitation loop input amplifier before P/N node power control */
-#define AFECTRL_HSTIAPWR            (1L<<11)   /**< High speed TIA amplifier power control */   
+#define AFECTRL_HSTIAPWR            (1L<<11)   /**< High speed TIA amplifier power control */
 #define AFECTRL_TEMPSPWR            (1L<<12)   /**< Temperature sensor power */
 #define AFECTRL_TEMPCNV             (1L<<13)   /**< Start Temperature sensor convert */
 #define AFECTRL_WG                  (1L<<14)   /**< Waveform generator on-off control */
 #define AFECTRL_DFT                 (1L<<15)   /**< DFT engine on-off control */
 #define AFECTRL_SINC2NOTCH          (1L<<16)	  /**< SIN2+Notch block on-off control */
 #define AFECTRL_ALDOLIMIT           (1L<<19)	  /**< ALDO current limit on-off control */
-#define AFECTRL_DACREFPWR           (1L<<20)	  /**< DAC reference buffer power control */ 
-#define AFECTRL_DCBUFPWR            (1L<<21)	  /**< Excitation loop DC offset buffer sourced from LPDAC power control */           
-#define AFECTRL_ALL                 0x39ffe0   /**< All control signals */           
+#define AFECTRL_DACREFPWR           (1L<<20)	  /**< DAC reference buffer power control */
+#define AFECTRL_DCBUFPWR            (1L<<21)	  /**< Excitation loop DC offset buffer sourced from LPDAC power control */
+#define AFECTRL_ALL                 0x39ffe0   /**< All control signals */
 /**
  * @}
 */
@@ -3079,7 +3079,7 @@
  * @details  This is all the available control signal for function @ref AD5940_LPModeCtrlS
  * @warning Bit field in register LPMODECON has some opposite meaning as below definitions. We use all positive word here
  *          like HPREFPWR instead of HPREFDIS. This set is only used in function @ref AD5940_AFECtrlS, the second parameter
- *          decides whether enable or disable selected block(s). 
+ *          decides whether enable or disable selected block(s).
  * @{
 */
 #define LPMODECTRL_HFOSCEN             (1<<0)  /**< Enable internal HFOSC. Note: the register defination is set this bit to 1 to disable it. */
@@ -3109,7 +3109,7 @@
 #define AFERESULT_STATSVAR          6 /**< Statistic Variance result */
 /** @} */
 
-/** 
+/**
  * @} AFE_Control_Const
  * @} AFE_Control
  * */
@@ -3125,10 +3125,10 @@
  * @defgroup Switch_Matrix_Block_Const
  * @{
  *    @defgroup SWD_Const
- *    @brief Switch D set. This is bit mask for register DSWFULLCON. 
+ *    @brief Switch D set. This is bit mask for register DSWFULLCON.
  *    @details
- *        It's used to initialize structure @ref SWMatrixCfg_Type 
- *        The bit masks can be OR'ed together. For example 
+ *        It's used to initialize structure @ref SWMatrixCfg_Type
+ *        The bit masks can be OR'ed together. For example
  *          - `SWD_AIN1|SWD_RCAL0` means close SWD_AIN1 and SWD_RCAL0 in same time, and open all other D switches.
  *          - `SWD_AIN2` means close SWD_AIN2 and open all other D switches.
  *    @{
@@ -3151,7 +3151,7 @@
  * @brief Switch P set. This is bit mask for register PSWFULLCON.
  * @details
  *        It's used to initialize structure @ref SWMatrixCfg_Type.
- *        The bit masks can be OR'ed together. For example 
+ *        The bit masks can be OR'ed together. For example
  *          - `SWP_RCAL0|SWP_AIN1` means close SWP_RCAL0 and SWP_AIN1 in same time, and open all other P switches.
  *          - `SWP_SE0` means close SWP_SE0 and open all other P switches.
  * @{
@@ -3181,7 +3181,7 @@
  * @brief Switch N set. This is bit mask for register NSWFULLCON.
  * @details
  *        It's used to initialize structure @ref SWMatrixCfg_Type.
- *        The bit masks can be OR'ed together. For example 
+ *        The bit masks can be OR'ed together. For example
  *          - `SWN_RCAL0|SWN_AIN1` means close SWN_RCAL0 and SWN_AIN1 in same time, and open all other N switches.
  *          - `SWN_SE0` means close SWN_SE0 and open all other N switches.
  * @{
@@ -3207,7 +3207,7 @@
  * @brief Switch T set. This is bit mask for register TSWFULLCON.
  * @details
  *        It's used to initialize structure @ref SWMatrixCfg_Type.
- *        The bit masks can be OR'ed together. For example 
+ *        The bit masks can be OR'ed together. For example
  *          - SWT_RCAL0|SWT_AIN1 means close SWT_RCAL0 and SWT_AIN1 in same time, and open all other T switches.
  *          - SWT_SE0LOAD means close SWT_SE0LOAD and open all other T switches.
  * @{
@@ -3318,7 +3318,7 @@
 #define HSTIADERTIA_80K             8     /**< set bit[7:3] to 0x10(16) */
 #define HSTIADERTIA_160K            9     /**< set bit[7:3] to 0x11(17) */
 #define HSTIADERTIA_TODE            10    /**< short HSTIA output to DE0 pin. set bit[7:3] to 0x12(18) */
-#define HSTIADERTIA_OPEN            11    /**< Default state is set to OPEN RTIA by setting bit[7:3] to 0x1f */      
+#define HSTIADERTIA_OPEN            11    /**< Default state is set to OPEN RTIA by setting bit[7:3] to 0x1f */
 /** @} */
 
 /* HSTIA DE0 Terminal internal RLOAD selection */
@@ -3504,7 +3504,7 @@
 
 /**
  * @defgroup LPAMP_Const
- * LPAMP selecion. On AD594x, only LPAMP0 is available. 
+ * LPAMP selecion. On AD594x, only LPAMP0 is available.
  * @note This parameter must be configured correctly.
  * @{
  * */
@@ -3526,14 +3526,14 @@
 
 #define LPTIASW(n)                  (1L<<n) /**< LPTIA switch control. Use this macro to set LpTiaSW field of @ref LPAmpCfg_Type  */
 
-/** 
+/**
  * @} LPAMP_Block_Const
  * @} Low_Power_Loop_Const
  * @} Low_Power_Loop
- * 
+ *
  * */
 
-/** 
+/**
  * @addtogroup DSP_Block
  * DSP block include signal chain from raw ADC data to various filters, DFT engine and Statistic Functions etc.
  * @{
@@ -3559,8 +3559,8 @@
                                     (pga) == ADCPGA_2) ||\
                                     (pga) == ADCPGA_4) ||\
                                     (pga) == ADCPGA_9))
-/** 
- * @} 
+/**
+ * @}
  * */
 
 /**
@@ -3693,7 +3693,7 @@
 
 /**
  * @defgroup ADCAVGNUM_Const
- * @brief ADC Average filter for DFT. The average block locates after SINC3 filter. 
+ * @brief ADC Average filter for DFT. The average block locates after SINC3 filter.
  *        The output of average filter is directly feed into DFT block.
  * @warning Once average filter is enabled, DFT source is automatically changed to averaged data.
  * @{
@@ -3746,8 +3746,8 @@
 #define DFTNUM_16384                12    /**< 16384 Point */
 /** @} */
 
-/** 
- * @} DFT_Block_Const 
+/**
+ * @} DFT_Block_Const
 */
 
 /**
@@ -3779,11 +3779,11 @@
 #define STATDEV_25                  25    /**< Used for check outlier of ADC result */
 /** @} */
 
-/** 
+/**
  * @} Statistic_Block_Const
  * @} DSP_Block_Const
  * @} DSP_Block
- * 
+ *
 */
 
 /**
@@ -3837,20 +3837,20 @@
 
 /* Three kinds of sequencer commands: wait, time-out, write */
 /* Decoded by BIT[31:30] */
-/** 
+/**
  * Wait command. Wait some clocks-code Command Code: 'b00
  * @warning Maximum wait time is 0x3fff_ffff/System clock.
  */
 #define SEQ_WAIT(ClkNum)            (0x00000000| ((uint32_t)(ClkNum)&0x3fffffff))
 
-/** 
+/**
  * Time-Out command. Set time-out count down value. Command Code: 'b01
- * @warning maximum time-out timer value is 0x3fffffff 
+ * @warning maximum time-out timer value is 0x3fffffff
  * */
-#define SEQ_TOUT(ClkNum)            (0x40000000| ((uint32_t)(ClkNum)&0x3fffffff)) 
+#define SEQ_TOUT(ClkNum)            (0x40000000| ((uint32_t)(ClkNum)&0x3fffffff))
 
-/** 
- * Write register command. Command Code: 'b10 or 'b11 
+/**
+ * Write register command. Command Code: 'b10 or 'b11
  * @warning Address range is 0x2000 to 0x21FF. Data is limited to 24bit width.
  * */
 #define SEQ_WR(addr,data)           (0x80000000|(((((uint32_t)(addr))>>2)&0x7f)<<24)  \
@@ -3870,7 +3870,7 @@
 
 /* Helper to calculate sequence length in array */
 #define SEQ_LEN(n)                  (sizeof(n)/4)   /**< Calculate how many commands are in sepecified array. */
-/** @} */ //Sequencer_Helper 
+/** @} */ //Sequencer_Helper
 
 /* FIFO */
 /**
@@ -3900,15 +3900,15 @@
  * Method to identify FIFO channel ID:
  * [31:25][24:23][22:16][15:0]
  * [ ECC ][SEQID][CH_ID][DATA]
- * 
+ *
  * CH_ID: [22:16] 7bit in total:
  *        xxxxx_xx
  *        11111_xx    : DFT results
  *        11110_xx    : Mean of statistic block
  *        11101_xx    : Variance of statistic block
  *        1xxxx_xx    : Notch filter result, where xxx_xx is the ADC MUX P settings(6bits of reg ADCCON[5:0]).
- *        0xxxx_xx    : SINC3 filter result, where xxx_xx is the ADC MUX P settings(6bits of reg ADCCON[5:0]). 
-*/ 
+ *        0xxxx_xx    : SINC3 filter result, where xxx_xx is the ADC MUX P settings(6bits of reg ADCCON[5:0]).
+*/
 #define FIFO_SEQID(data)          ((((uint32_t)data)>>23)&0x3)   /**< Return seqid of this FIFO result */
 #define FIFO_ECC(data)            ((((uint32_t)data)>>25)&0x7f)  /**< Return ECC of this FIFO result */
 #define FIFO_CHANID(data)         ((((uint32_t)data)>>16)&0x7f)  /**< Return Channel ID */
@@ -3923,7 +3923,7 @@
 
 /**
  * @defgroup FIFOSIZE_Const
- * @brief Set FIFO size. 
+ * @brief Set FIFO size.
  * @warning The total available SRAM is 6kB. It's shared by FIFO and sequencer.
  * @{
 */
@@ -3948,8 +3948,8 @@
 #define WUPTENDSEQ_H                7   /**< End at slot H */
 /** @} */
 
-/** 
- * @} End of sequencer_and_FIFO block 
+/**
+ * @} End of sequencer_and_FIFO block
  * @} Sequencer_FIFO
  * */
 
@@ -4021,7 +4021,7 @@
 /**
  * @defgroup GP1FUNC_Const
  * @{
-*/  
+*/
 #define GP1_GPIO                    (0<<2)   /**< Normal GPIO function */
 #define GP1_TRIG                    (1<<2)   /**< Sequence1 trigger */
 #define GP1_SYNC                    (2<<2)   /**< Use Sequencer to controll GP1 output level */
@@ -4031,7 +4031,7 @@
 /**
  * @defgroup GP2FUNC_Const
  * @{
-*/  
+*/
 #define GP2_PORB                    (0<<4)   /**< Internal Power ON reset signal */
 #define GP2_TRIG                    (1<<4)   /**< Sequence1 trigger */
 #define GP2_SYNC                    (2<<4)   /**< Use Sequencer to controll GP2 output level */
@@ -4041,7 +4041,7 @@
 /**
  * @defgroup GP3FUNC_Const
  * @{
-*/  
+*/
 #define GP3_GPIO                    (0<<6)   /**< Normal GPIO function */
 #define GP3_TRIG                    (1<<6)   /**< Sequence3 trigger */
 #define GP3_SYNC                    (2<<6)   /**< Use Sequencer to controll GP3 output level */
@@ -4052,7 +4052,7 @@
  * @defgroup GP4FUNC_Const
  * @note GP4 (Not available on AD5941)
  * @{
-*/  
+*/
 #define GP4_GPIO                    (0<<8)   /**< Normal GPIO function */
 #define GP4_TRIG                    (1<<8)   /**< Sequence0 trigger */
 #define GP4_SYNC                    (2<<8)   /**< Use Sequencer to controll GP4 output level */
@@ -4063,7 +4063,7 @@
  * @defgroup GP5FUNC_Const
  * @note GP5 (Not available on AD5941)
  * @{
-*/  
+*/
 #define GP5_GPIO                    (0<<10)  /**< Internal Power ON reset signal */
 #define GP5_TRIG                    (1<<10)  /**< Sequence1 trigger */
 #define GP5_SYNC                    (2<<10)  /**< Use Sequencer to controll GP5 output level */
@@ -4074,7 +4074,7 @@
  * @defgroup GP6FUNC_Const
  * @note GP6 (Not available on AD5941)
  * @{
-*/  
+*/
 #define GP6_GPIO                    (0<<12)  /**< Normal GPIO function */
 #define GP6_TRIG                    (1<<12)  /**< Sequence2 trigger */
 #define GP6_SYNC                    (2<<12)  /**< Use Sequencer to controll GP6 output level */
@@ -4085,7 +4085,7 @@
  * @defgroup GP7FUNC_Const
  * @note GP7 (Not available on AD5941)
  * @{
-*/    
+*/
 #define GP7_GPIO                    (0<<14)  /**< Normal GPIO function */
 #define GP7_TRIG                    (1<<14)  /**< Sequence2 trigger */
 #define GP7_SYNC                    (2<<14)  /**< Use Sequencer to controll GP7 output level */
@@ -4096,7 +4096,7 @@
 /**
  * @defgroup LPMODECLK_Const
  * @{
-*/ 
+*/
 #define LPMODECLK_HFOSC             0       /**< Use HFOSC 16MHz/32MHz clock as system clock */
 #define LPMODECLK_LFOSC             1       /**< Use LFOSC 32kHz clock as system clock */
 /** @} */
@@ -4120,7 +4120,7 @@
  * @brief Select ADC clock source.
  *        The maximum clock is 32MHz.
  * @warning The ADC raw data update rate is equal to ADCClock/20. When ADC clock is 32MHz, sample rate is 1.6MSPS.
- *          The SINC3 filter clock are sourced from ADC clock and should be limited to 16MHz. When ADC clock is set to 32MHz. Clear bit ADCFILTERCON.BIT0 
+ *          The SINC3 filter clock are sourced from ADC clock and should be limited to 16MHz. When ADC clock is set to 32MHz. Clear bit ADCFILTERCON.BIT0
  *          to enable the SINC3 clock divider.
  * @{
 */
@@ -4166,11 +4166,11 @@
 */
 #define AD5940ERR_OK               0  /**< No error */
 #define AD5940ERR_ERROR           -1  /**< General error message */
-#define AD5940ERR_PARA            -2  /**< Parameter is illegal */ 
-#define AD5940ERR_NULLP           -3  /**< Null pointer */ 
+#define AD5940ERR_PARA            -2  /**< Parameter is illegal */
+#define AD5940ERR_NULLP           -3  /**< Null pointer */
 #define AD5940ERR_BUFF            -4  /**< Buffer limited. */
-#define AD5940ERR_ADDROR          -5  /**< Out of Range. Register address is out of range. */ 
-#define AD5940ERR_SEQGEN          -6  /**< Sequence generator error */ 
+#define AD5940ERR_ADDROR          -5  /**< Out of Range. Register address is out of range. */
+#define AD5940ERR_SEQGEN          -6  /**< Sequence generator error */
 #define AD5940ERR_SEQREG          -7  /**< Register info is not found */
 #define AD5940ERR_SEQLEN          -8  /**< Sequence length is too long. */
 #define AD5940ERR_WAKEUP          -9  /**< Unable to wakeup AFE in specified time */
@@ -4196,7 +4196,7 @@
 
 #define PARA_CHECK(n)            /** add parameter check, Add DEBUG switch  */
 
-/** 
+/**
  * @} MISC_Block_Const
  * @} MISC_Block
  * */
@@ -4210,7 +4210,7 @@ typedef int32_t AD5940Err;    /**< error number defination */
 /**
  * bool definition for ad5940lib.
 */
-typedef enum 
+typedef enum
 {
   bFALSE = 0, bTRUE = !bFALSE,   /**< True and False definition*/
 }BoolFlag;
@@ -4230,13 +4230,13 @@ typedef struct
   /* DAC Reference Buffer */
   BoolFlag HSDACRefEn;      /**< Enable DAC reference buffer from HP Bandgap */
   /* Misc. control  */
-  BoolFlag Hp1V8ThemBuff;   /**< Thermal Buffer for internal 1.8V reference to AIN3 pin  */              
+  BoolFlag Hp1V8ThemBuff;   /**< Thermal Buffer for internal 1.8V reference to AIN3 pin  */
   BoolFlag Hp1V8Ilimit;     /**< Current limit for High power 1.8V reference buffer */
   BoolFlag Disc1V8Cap;      /**< Discharge 1.8V capacitor. Short external 1.8V decouple capacitor to ground. Be careful when use this bit  */
   BoolFlag Disc1V1Cap;      /**< Discharge 1.1V capacitor. Short external 1.1V decouple capacitor to ground. Be careful when use this bit  */
 }AFERefCfg_Type;
 
-/** 
+/**
  * @defgroup ADC_BlockType
  * @{
 */
@@ -4282,9 +4282,9 @@ typedef struct
 typedef struct
 {
   uint16_t ADCMin;      /**< The ADC code minimum limit value */
-  uint16_t ADCMinHys; 
+  uint16_t ADCMinHys;
   uint16_t ADCMax;      /**< The ADC code maximum limit value */
-  uint16_t ADCMaxHys;   
+  uint16_t ADCMaxHys;
 }ADCDigComp_Type;
 
 /**
@@ -4323,15 +4323,15 @@ typedef struct
 /** HSDAC Configure */
 typedef struct
 {
-  uint32_t ExcitBufGain;      /**< Select from  EXCITBUFGAIN_2, EXCITBUFGAIN_0P25 */     
+  uint32_t ExcitBufGain;      /**< Select from  EXCITBUFGAIN_2, EXCITBUFGAIN_0P25 */
   uint32_t HsDacGain;         /**< Select from  HSDACGAIN_1, HSDACGAIN_0P2 */
   uint32_t HsDacUpdateRate;   /**< Divider for DAC update. Available range is 7~255. */
 }HSDACCfg_Type;
 
-/** LPDAC Configure 
+/** LPDAC Configure
  * @note The LPDAC structure:
  * @code
- * Switch to select DAC output to Vzero and Vbias nodes. Vzero and Vbias can select from DAC6BIT and DAC12BIT output freely. 
+ * Switch to select DAC output to Vzero and Vbias nodes. Vzero and Vbias can select from DAC6BIT and DAC12BIT output freely.
  * LPDAC  >DAC6BIT ---- Vzero   LPDACVZERO_12BIT
  *                 \--- Vbias   LPDACVBIAS_6BIT
  *        >DAC12BIT---- Vzero   LPDACVZERO_6BIT
@@ -4377,7 +4377,7 @@ typedef struct
  * @brief Trapezoid Generator parameters
  * The definition of the Trapezoid waveform is shown below. Note the Delay and Slope are all in clock unit.
  * @code
- * 
+ *
  * DCLevel2         _________
  *                 /         \
  *                /           \
@@ -4427,7 +4427,7 @@ typedef struct
 }WGCfg_Type;
 
 /**
- * High speed loop configuration 
+ * High speed loop configuration
  * */
 typedef struct
 {
@@ -4438,7 +4438,7 @@ typedef struct
 }HSLoopCfg_Type;
 
 /**
- * Low power loop Configure 
+ * Low power loop Configure
  * */
 typedef struct
 {
@@ -4447,7 +4447,7 @@ typedef struct
 }LPLoopCfg_Type;
 
 /**
- * DSP Configure 
+ * DSP Configure
  * */
 typedef struct
 {
@@ -4459,7 +4459,7 @@ typedef struct
 }DSPCfg_Type;
 
 /**
- * GPIO Configure 
+ * GPIO Configure
  * */
 typedef struct
 {
@@ -4549,12 +4549,12 @@ typedef struct
 {
   float fFreq;                /**< Calibration frequency */
   float fRcal;                /**< Rcal resistor value in Ohm*/
-  float SysClkFreq;           /**< The real frequency of system clock */  
-  float AdcClkFreq;           /**< The real frequency of ADC clock */   
+  float SysClkFreq;           /**< The real frequency of system clock */
+  float AdcClkFreq;           /**< The real frequency of ADC clock */
 
   HSTIACfg_Type HsTiaCfg;     /**< HSTIA configuration */
   uint32_t ADCSinc3Osr;       /**< SINC3OSR_5, SINC3OSR_4 or SINC3OSR_2 */
-  uint32_t ADCSinc2Osr;       /**< SINC3OSR_5, SINC3OSR_4 or SINC3OSR_2 */ 
+  uint32_t ADCSinc2Osr;       /**< SINC3OSR_5, SINC3OSR_4 or SINC3OSR_2 */
   DFTCfg_Type DftCfg;         /**< DFT configuration. */
   uint32_t bPolarResult;      /**< bTRUE-Polar coordinate:Return results in Magnitude and Phase. bFALSE-Cartesian coordinate: Return results in Real part and Imaginary Part */
 }HSRTIACal_Type;
@@ -4566,15 +4566,15 @@ typedef struct
 {
   float fFreq;                /**< Calibration frequency. Set it to 0.0 for DC calibration */
   float fRcal;                /**< Rcal resistor value in Ohm*/
-  float SysClkFreq;           /**< The real frequency of system clock */  
-  float AdcClkFreq;           /**< The real frequency of ADC clock */   
+  float SysClkFreq;           /**< The real frequency of system clock */
+  float AdcClkFreq;           /**< The real frequency of ADC clock */
 
   uint32_t LpAmpSel;          /**< Select from LPAMP0 and LPAMP1. LPAMP1 is only available on ADuCM355. */
   BoolFlag bWithCtia;         /**< Connect external CTIA or not. */
   uint32_t LpTiaRtia;         /**< LPTIA RTIA selection. */
   uint32_t LpAmpPwrMod;       /**< Amplifiers power mode setting */
   uint32_t ADCSinc3Osr;       /**< SINC3OSR_5, SINC3OSR_4 or SINC3OSR_2 */
-  uint32_t ADCSinc2Osr;       /**< SINC3OSR_5, SINC3OSR_4 or SINC3OSR_2 */ 
+  uint32_t ADCSinc2Osr;       /**< SINC3OSR_5, SINC3OSR_4 or SINC3OSR_2 */
   DFTCfg_Type DftCfg;         /**< DFT configuration */
   uint32_t bPolarResult;      /**< bTRUE-Polar coordinate:Return results in Magnitude and Phase. bFALSE-Cartesian coordinate: Return results in Real part and Imaginary Part */
 }LPRTIACal_Type;
@@ -4585,15 +4585,15 @@ typedef struct
 typedef struct
 {
   float fRcal;                /**< Rcal resistor value in Ohm*/
-  float SysClkFreq;           /**< The real frequency of system clock */  
-  float AdcClkFreq;           /**< The real frequency of ADC clock */ 
+  float SysClkFreq;           /**< The real frequency of system clock */
+  float AdcClkFreq;           /**< The real frequency of ADC clock */
 
   uint32_t AfePwrMode;        /**< Calibrate DAC in High power mode */
-  uint32_t ExcitBufGain;      /**< Select from  EXCITBUFGAIN_2, EXCITBUFGAIN_0P25 */     
+  uint32_t ExcitBufGain;      /**< Select from  EXCITBUFGAIN_2, EXCITBUFGAIN_0P25 */
   uint32_t HsDacGain;         /**< Select from  HSDACGAIN_1, HSDACGAIN_0P2 */
 
   uint32_t ADCSinc3Osr;       /**< SINC3OSR_5, SINC3OSR_4 or SINC3OSR_2 */
-  uint32_t ADCSinc2Osr;       /**< SINC3OSR_5, SINC3OSR_4 or SINC3OSR_2 */ 
+  uint32_t ADCSinc2Osr;       /**< SINC3OSR_5, SINC3OSR_4 or SINC3OSR_2 */
 }HSDACCal_Type;
 
 /**
@@ -4602,22 +4602,22 @@ typedef struct
 typedef struct
 {
   uint32_t  LpdacSel;           /**< Select from LPDAC0 and LPDAC1. LPDAC1 is ADuCM355 only. */
-  float     SysClkFreq;         /**< The real frequency of system clock */  
+  float     SysClkFreq;         /**< The real frequency of system clock */
   float     AdcClkFreq;         /**< The real frequency of ADC clock */
   float     ADCRefVolt;         /**< ADC reference voltage. Default is 1.82V*/
   uint32_t  ADCSinc3Osr;        /**< SINC3OSR_5, SINC3OSR_4 or SINC3OSR_2 */
-  uint32_t  ADCSinc2Osr;        /**< SINC2 OSR settings. */ 
-  int32_t   SettleTime10us;     /**< Wait how much time after TIA is enabled? */   
+  uint32_t  ADCSinc2Osr;        /**< SINC2 OSR settings. */
+  int32_t   SettleTime10us;     /**< Wait how much time after TIA is enabled? */
   int32_t   TimeOut10us;        /**< ADC converts signal need time. Specify the maximum time allowed. Timeout in 10us. negative number means wait no time. */
 }LPDACCal_Type;
 
 /**
  * LPDAC parameters: LPDAC code to voltage transfer function.
- * Voltage(mV) = kC2V_DACxB * Code + bC2V_DACxB; 
+ * Voltage(mV) = kC2V_DACxB * Code + bC2V_DACxB;
  *  where x is 12 or 6 represent 12Bit DAC and 6Bit DAC. C2V means code to voltage.
- *  Code is the data register value for LPDAC. The equation gives real output voltage of LPDAC.    
+ *  Code is the data register value for LPDAC. The equation gives real output voltage of LPDAC.
  * Similarly, Code(LSB) = kV2C_DACxB * Voltage(mV) + bC2V_DAC12B;
- * 
+ *
  * Apparently, kV2C_DACxB = 1/kC2V_DACxB;
  *             bC2V_DACxB = -bC2V_DACxB/kC2V_DACxB;
 */
@@ -4650,12 +4650,12 @@ typedef struct
 */
 typedef struct
 {
-  float SysClkFreq;           /**< The real frequency of system clock */  
-  float AdcClkFreq;           /**< The real frequency of ADC clock */  
+  float SysClkFreq;           /**< The real frequency of system clock */
+  float AdcClkFreq;           /**< The real frequency of ADC clock */
   float VRef1p82;             /**< The real voltage of 1.82 reference. Unit is volt. */
   float VRef1p11;             /**< The real voltage of 1.1 reference. Unit is volt. */
   uint32_t ADCSinc3Osr;       /**< SINC3OSR_5, SINC3OSR_4 or SINC3OSR_2 */
-  uint32_t ADCSinc2Osr;       /**< SINC3OSR_5, SINC3OSR_4 or SINC3OSR_2 */ 
+  uint32_t ADCSinc2Osr;       /**< SINC3OSR_5, SINC3OSR_4 or SINC3OSR_2 */
   uint32_t ADCPga;            /**< Which PGA gain we are going to calibrate? */
   uint32_t PGACalType;        /**< Calibrate gain of offset or gain+offset? */
   int32_t TimeOut10us;        /**< Timeout in 10us. -1 means no time-out*/
@@ -4667,18 +4667,18 @@ typedef struct
 typedef struct
 {
   uint32_t  LpAmpSel;           /**< Select from LPAMP0 and LPAMP1. LPAMP1 is only available on ADuCM355. */
-  float     SysClkFreq;         /**< The real frequency of system clock */  
-  float     AdcClkFreq;         /**< The real frequency of ADC clock */  
+  float     SysClkFreq;         /**< The real frequency of system clock */
+  float     AdcClkFreq;         /**< The real frequency of ADC clock */
   uint32_t  ADCSinc3Osr;        /**< SINC3OSR_5, SINC3OSR_4 or SINC3OSR_2 */
-  uint32_t  ADCSinc2Osr;        /**< SINC3OSR_5, SINC3OSR_4 or SINC3OSR_2 */ 
+  uint32_t  ADCSinc2Osr;        /**< SINC3OSR_5, SINC3OSR_4 or SINC3OSR_2 */
   uint32_t  ADCPga;             /**< PGA Gain selection */
   uint32_t  DacData12Bit;       /**< 12Bit DAC data */
   uint32_t  DacData6Bit;        /**< 6Bit DAC data */
   uint32_t  LpDacVzeroMux;      /**< Vzero is used as LPTIA bias voltage, select 12Bit/6Bit DAC */
-  uint32_t  LpAmpPwrMod;        /**< LP amplifiers power mode, select from LPAMPPWR_NORM, LPAMPPWR_BOOSTn*/ 
+  uint32_t  LpAmpPwrMod;        /**< LP amplifiers power mode, select from LPAMPPWR_NORM, LPAMPPWR_BOOSTn*/
   uint32_t  LpTiaSW;            /**< Switch configuration for LPTIA. Normally for SW(5) and SW(9).*/
   uint32_t  LpTiaRtia;          /**< LPTIA RTIA resistor selection. */
-  int32_t   SettleTime10us;     /**< Wait how much time after TIA is enabled? */   
+  int32_t   SettleTime10us;     /**< Wait how much time after TIA is enabled? */
   int32_t   TimeOut10us;        /**< ADC converts signal need time. Specify the maximum time allowed. Timeout in 10us. negative number means wait no time. */
 }LPTIAOffsetCal_Type;
 
@@ -4698,8 +4698,8 @@ typedef struct
   float RatioSys2AdcClk;      /**< Ratio of system clock to ADC clock frequency */
 }ClksCalInfo_Type;
 
-/** 
- * Software controlled Sweep Function 
+/**
+ * Software controlled Sweep Function
  * */
 typedef struct
 {
@@ -4712,7 +4712,7 @@ typedef struct
 }SoftSweepCfg_Type;
 
 /**
- * Impedance result in Polar coordinate 
+ * Impedance result in Polar coordinate
 */
 typedef struct
 {
@@ -4720,8 +4720,15 @@ typedef struct
   float Phase;             /**< The phase in polar coordinate */
 }fImpPol_Type; //Polar
 
+typedef struct
+{
+  float RzMag;         /**< The magnitude in polar coordinate */
+  float RzPhase;             /**< The phase in polar coordinate */
+  float RcalMag;
+  float RcalPhase;
+}fImpCalCar_Type;
 /**
- * Impedance result in Cartesian coordinate 
+ * Impedance result in Cartesian coordinate
 */
 typedef struct
 {
@@ -4730,7 +4737,7 @@ typedef struct
 }fImpCar_Type; //Cartesian
 
 /**
- * int32_t type Impedance result in Cartesian coordinate 
+ * int32_t type Impedance result in Cartesian coordinate
 */
 typedef struct
 {
@@ -4739,7 +4746,7 @@ typedef struct
 }iImpCar_Type;
 
 /**
- *  FreqParams_Type - Structure to store optimum filter settings 
+ *  FreqParams_Type - Structure to store optimum filter settings
 */
 typedef struct
 {
@@ -4885,6 +4892,7 @@ void      AD5940_ClksCalculate(ClksCalInfo_Type *pFilterInfo, uint32_t *pClocks)
 uint32_t  AD5940_SEQCycleTime(void);
 void      AD5940_SweepNext(SoftSweepCfg_Type *pSweepCfg, float *pNextFreq);
 void      AD5940_StructInit(void *pStruct, uint32_t StructSize);
+void      AD5940_AdjustFiltersByFreq(ADCFilterCfg_Type *pFilterCfg, DFTCfg_Type *pDftCfg, float frequency);
 float     AD5940_ADCCode2Volt(uint32_t code, uint32_t ADCPga, float VRef1p82); /* Calculate ADC code to voltage */
 BoolFlag  AD5940_Notch50HzAvailable(ADCFilterCfg_Type *pFilterInfo, uint8_t *dl);
 BoolFlag  AD5940_Notch60HzAvailable(ADCFilterCfg_Type *pFilterInfo, uint8_t *dl);
@@ -4898,6 +4906,7 @@ fImpCar_Type AD5940_ComplexMulInt(iImpCar_Type *a, iImpCar_Type *b);
 float     AD5940_ComplexMag(fImpCar_Type *a);
 float     AD5940_ComplexPhase(fImpCar_Type *a);
 FreqParams_Type AD5940_GetFreqParameters(float freq);
+
 /**
  * @} Exported_Functions
 */
