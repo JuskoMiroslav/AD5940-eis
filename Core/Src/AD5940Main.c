@@ -18,6 +18,7 @@
 #include "AD5940.H"
 #include "AD5940.h"
 #include "Impedance.h"
+#include <math.h>
 #include <stddef.h>
 
 /* Function declaration */
@@ -111,6 +112,9 @@ configcommand_list_t config_cmd_list[CNFLIST_SIZE] = {
 int32_t ImpedanceShowResult(uint32_t *pData, uint32_t DataCount) {
   float freq;
   char data[200];
+  AppIMPCfg_Type *cfg;
+
+  AppIMPGetCfg(&cfg);
 
   fImpCalCar_Type *pImp = (fImpCalCar_Type *)pData;
 
@@ -119,9 +123,23 @@ int32_t ImpedanceShowResult(uint32_t *pData, uint32_t DataCount) {
 
     for (int i = 0; i < DataCount; i++) {
 
-      snprintf(data, sizeof(data), "%.2f,%.6f,%.6f,%.6f,%.6f", freq, pImp[i].RzMag, pImp[i].RzPhase, pImp[i].RcalMag,pImp[i].RcalPhase);
+      snprintf(data, sizeof(data), "%.2f,%ld,%ld,%ld,%ld", freq, pImp[i].RzReal, pImp[i].RzImag, pImp[i].RcalReal, pImp[i].RcalImag);
+
+      // snprintf(data, sizeof(data), "%.2f,%.6f,%.6f,%.6f,%.6f", freq, pImp[i].RzMag, pImp[i].RzPhase, pImp[i].RcalMag,pImp[i].RcalPhase);
 
       send_packet("IMP", data);
+
+      /* Raw ADC monitoring: magnitude of the sensor (Rz) DFT result.
+       * This is the raw value proportional to the ADC reading across RTIA.
+       * Use it to judge whether RTIA is well-ranged (saturated = too high,
+       * tiny = too low). */
+      float rz_re = (float)(int32_t)pImp[i].RzReal;
+      float rz_im = (float)(int32_t)pImp[i].RzImag;
+      float rz_mag = sqrtf(rz_re * rz_re + rz_im * rz_im);
+      snprintf(data, sizeof(data), "%.2f,%ld,%ld,%.1f,%lu", freq,
+               (long)(int32_t)pImp[i].RzReal, (long)(int32_t)pImp[i].RzImag,
+               rz_mag, (unsigned long)cfg->HstiaRtiaSel);
+      send_packet("RAW", data);
     }
   }
   return 0;
@@ -138,13 +156,13 @@ static int32_t AD5940PlatformCfg(void) {
   /* Platform configuration */
   /* Step1. Configure clock */
   clk_cfg.ADCClkDiv = ADCCLKDIV_1;
-  clk_cfg.ADCCLkSrc = ADCCLKSRC_XTAL;
+  clk_cfg.ADCCLkSrc = ADCCLKSRC_HFOSC;
   clk_cfg.SysClkDiv = SYSCLKDIV_1;
-  clk_cfg.SysClkSrc = SYSCLKSRC_XTAL;
-  clk_cfg.HfOSC32MHzMode = bFALSE;
-  clk_cfg.HFOSCEn = bFALSE;
+  clk_cfg.SysClkSrc = SYSCLKSRC_HFOSC;
+  clk_cfg.HfOSC32MHzMode = bTRUE;
+  clk_cfg.HFOSCEn = bTRUE;
   clk_cfg.HFXTALEn = bTRUE;
-  clk_cfg.LFOSCEn = bFALSE;
+  clk_cfg.LFOSCEn = bTRUE;
   AD5940_CLKCfg(&clk_cfg);
   /* Step2. Configure FIFO and Sequencer*/
   fifo_cfg.FIFOEn = bFALSE;
@@ -183,7 +201,7 @@ void AD5940ImpedanceStructInit(void) {
   pImpedanceCfg->SeqStartAddr = 0;
   pImpedanceCfg->MaxSeqLen = 512; /* @todo add checker in function */
 
-  pImpedanceCfg->RcalVal = 820000.0;
+  pImpedanceCfg->RcalVal = 10000.0;
   pImpedanceCfg->FifoThresh = 4;
   pImpedanceCfg->SinFreq = 1000.0;
 
@@ -214,7 +232,7 @@ void AD5940ImpedanceStructInit(void) {
   pImpedanceCfg->SweepCfg.SweepPoints = 101;   /* Points is 101 */
   pImpedanceCfg->SweepCfg.SweepLog = bTRUE;
   /* Configure Power Mode. Use HP mode if frequency is higher than 80kHz. */
-  pImpedanceCfg->PwrMod = AFEPWR_LP;
+  pImpedanceCfg->PwrMod = AFEPWR_HP;
   /* Configure filters if necessary */
   pImpedanceCfg->ADCSinc3Osr =
       ADCSINC3OSR_4; /* Sample rate is 800kSPS/2 = 400kSPS */

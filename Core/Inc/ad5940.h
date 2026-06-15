@@ -4722,11 +4722,19 @@ typedef struct
 
 typedef struct
 {
+  uint32_t RzReal;         /**< The magnitude in polar coordinate */
+  uint32_t RzImag;             /**< The phase in polar coordinate */
+  uint32_t RcalReal;
+  uint32_t RcalImag;
+}fImpCalCar_Type;
+
+typedef struct
+{
   float RzMag;         /**< The magnitude in polar coordinate */
   float RzPhase;             /**< The phase in polar coordinate */
   float RcalMag;
   float RcalPhase;
-}fImpCalCar_Type;
+}fImpCalPol_Type;
 /**
  * Impedance result in Cartesian coordinate
 */

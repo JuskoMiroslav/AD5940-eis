@@ -654,7 +654,7 @@ void AD5940_AdjustFiltersByFreq(ADCFilterCfg_Type *pFilterCfg, DFTCfg_Type *pDft
     {
         // High frequencies typically drop SINC2 filtering entirely or minimize it to prevent signal attenuation
         pFilterCfg->ADCSinc2Osr = ADCSINC2OSR_22;
-        pFilterCfg->Sinc2NotchEnable = bFALSE;      // Bypass SINC2 completely if desired for maximum throughput
+        pFilterCfg->Sinc2NotchEnable = bTRUE;      // Bypass SINC2 completely if desired for maximum throughput
         pDftCfg->DftNum = DFTNUM_256;               // Fast collection
     }
 }
