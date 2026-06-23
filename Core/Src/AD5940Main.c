@@ -20,6 +20,7 @@
 #include "Impedance.h"
 #include <math.h>
 #include <stddef.h>
+#include <stdint.h>
 
 /* Function declaration */
 void send_packet(const char *type, const char *data);
@@ -33,7 +34,7 @@ uint32_t AppBuff[APPBUFF_SIZE];
 #define TYPE_UINT8 3
 #define TYPE_BOOL 4
 
-#define CNFLIST_SIZE 36
+#define CNFLIST_SIZE 38
 
 #define OFFSET_SWEEP(member)                                                   \
   (offsetof(AppIMPCfg_Type, SweepCfg) + offsetof(SoftSweepCfg_Type, member))
@@ -74,9 +75,11 @@ configcommand_list_t config_cmd_list[CNFLIST_SIZE] = {
     {"ADCSinc2Osr", TYPE_UINT8, offsetof(AppIMPCfg_Type, ADCSinc2Osr)},
     {"ADCAvgNum", TYPE_UINT8, offsetof(AppIMPCfg_Type, ADCAvgNum)},
     {"ADC_Rate", TYPE_UINT8, offsetof(AppIMPCfg_Type, ADC_Rate)},
+    {"AutoFilterEn", TYPE_BOOL,offsetof(AppIMPCfg_Type, AutoFilterEn)},
 
     /* Analog front-end (important for impedance) */
     {"HstiaRtiaSel", TYPE_UINT32, offsetof(AppIMPCfg_Type, HstiaRtiaSel)},
+    {"AutoRtiaEn", TYPE_BOOL, offsetof(AppIMPCfg_Type, HstiaRtiaAutoEn)},
     {"ExcitBufGain", TYPE_UINT32, offsetof(AppIMPCfg_Type, ExcitBufGain)},
     {"HsDacGain", TYPE_UINT32, offsetof(AppIMPCfg_Type, HsDacGain)},
     {"HsDacRate", TYPE_UINT32, offsetof(AppIMPCfg_Type, HsDacUpdateRate)},
@@ -91,8 +94,7 @@ configcommand_list_t config_cmd_list[CNFLIST_SIZE] = {
     /* System / control */
     {"PwrMod", TYPE_UINT32, offsetof(AppIMPCfg_Type, PwrMod)},
     {"FifoThresh", TYPE_UINT32, offsetof(AppIMPCfg_Type, FifoThresh)},
-    {"Rcal", TYPE_UINT8, offsetof(AppIMPCfg_Type, RcalSelection)},
-
+    {"Rcal", TYPE_UINT32, offsetof(AppIMPCfg_Type, RcalSelection)},
     /* Software Controlled Sweep Function*/
     {"SweepEn", TYPE_BOOL, OFFSET_SWEEP(SweepEn)},
     {"SweepStart", TYPE_FLOAT, OFFSET_SWEEP(SweepStart)},
@@ -111,7 +113,7 @@ configcommand_list_t config_cmd_list[CNFLIST_SIZE] = {
 
 int32_t ImpedanceShowResult(uint32_t *pData, uint32_t DataCount) {
   float freq;
-  char data[200];
+  char data[400];
   AppIMPCfg_Type *cfg;
 
   AppIMPGetCfg(&cfg);
@@ -123,23 +125,20 @@ int32_t ImpedanceShowResult(uint32_t *pData, uint32_t DataCount) {
 
     for (int i = 0; i < DataCount; i++) {
 
-      snprintf(data, sizeof(data), "%.2f,%ld,%ld,%ld,%ld", freq, pImp[i].RzReal, pImp[i].RzImag, pImp[i].RcalReal, pImp[i].RcalImag);
+      snprintf(data, sizeof(data),
+               "%.2f,%ld,%ld,%ld,%ld,%d,%lu,%lu,%d,%d,%d,%lu,%f", freq,
+               pImp[i].RzReal, pImp[i].RzImag, pImp[i].RcalReal,
+               pImp[i].RcalImag, cfg->AutoFilterEn, cfg->DftSrc, cfg->DftNum,
+               cfg->ADCSinc2Osr, cfg->ADCSinc3Osr, cfg->HstiaRtiaAutoEn,
+               cfg->HstiaRtiaSel, cfg->RcalVal);
 
-      // snprintf(data, sizeof(data), "%.2f,%.6f,%.6f,%.6f,%.6f", freq, pImp[i].RzMag, pImp[i].RzPhase, pImp[i].RcalMag,pImp[i].RcalPhase);
+      // snprintf(data, sizeof(data), "%.2f,%.6f,%.6f,%.6f,%.6f", freq,
+      // pImp[i].RzMag, pImp[i].RzPhase, pImp[i].RcalMag,pImp[i].RcalPhase);
 
       send_packet("IMP", data);
-
-      /* Raw ADC monitoring: magnitude of the sensor (Rz) DFT result.
-       * This is the raw value proportional to the ADC reading across RTIA.
-       * Use it to judge whether RTIA is well-ranged (saturated = too high,
-       * tiny = too low). */
-      float rz_re = (float)(int32_t)pImp[i].RzReal;
-      float rz_im = (float)(int32_t)pImp[i].RzImag;
-      float rz_mag = sqrtf(rz_re * rz_re + rz_im * rz_im);
-      snprintf(data, sizeof(data), "%.2f,%ld,%ld,%.1f,%lu", freq,
-               (long)(int32_t)pImp[i].RzReal, (long)(int32_t)pImp[i].RzImag,
-               rz_mag, (unsigned long)cfg->HstiaRtiaSel);
-      send_packet("RAW", data);
+      // snprintf(data, sizeof(data),
+      // "%d,%lu,%lu,%d,%d,%d,%lu",cfg->AutoFilterEn,cfg->DftSrc,cfg->DftNum,cfg->ADCSinc2Osr,cfg->ADCSinc3Osr,cfg->HstiaRtiaAutoEn,cfg->HstiaRtiaSel);
+      // send_packet("RAW", data);
     }
   }
   return 0;
@@ -159,7 +158,7 @@ static int32_t AD5940PlatformCfg(void) {
   clk_cfg.ADCCLkSrc = ADCCLKSRC_HFOSC;
   clk_cfg.SysClkDiv = SYSCLKDIV_1;
   clk_cfg.SysClkSrc = SYSCLKSRC_HFOSC;
-  clk_cfg.HfOSC32MHzMode = bTRUE;
+  clk_cfg.HfOSC32MHzMode = bFALSE;
   clk_cfg.HFOSCEn = bTRUE;
   clk_cfg.HFXTALEn = bTRUE;
   clk_cfg.LFOSCEn = bTRUE;
@@ -197,11 +196,12 @@ void AD5940ImpedanceStructInit(void) {
   AppIMPCfg_Type *pImpedanceCfg;
 
   AppIMPGetCfg(&pImpedanceCfg);
+  AppIMPSetCalibrationResistor(RCAL_2K);
   /* Step1: configure initialization sequence Info */
   pImpedanceCfg->SeqStartAddr = 0;
   pImpedanceCfg->MaxSeqLen = 512; /* @todo add checker in function */
 
-  pImpedanceCfg->RcalVal = 10000.0;
+  // pImpedanceCfg->RcalVal = 10000.0;
   pImpedanceCfg->FifoThresh = 4;
   pImpedanceCfg->SinFreq = 1000.0;
 
@@ -219,11 +219,13 @@ void AD5940ImpedanceStructInit(void) {
   /* Set switch matrix to onboard(EVAL-AD5940ELECZ) gas sensor. */
   pImpedanceCfg->DswitchSel = SWD_CE0;
   pImpedanceCfg->PswitchSel = SWP_RE0;
-  pImpedanceCfg->NswitchSel =  SWN_AIN0;//SWN_SE0LOAD;
-  pImpedanceCfg->TswitchSel =  SWT_AIN0;//SWT_SE0LOAD;
+  pImpedanceCfg->NswitchSel = SWN_AIN0; // SWN_SE0LOAD;
+  pImpedanceCfg->TswitchSel = SWT_AIN0; // SWT_SE0LOAD;
   /* The dummy sensor is as low as 5kOhm. We need to make sure RTIA is small
    * enough that HSTIA won't be saturated. */
-  pImpedanceCfg->HstiaRtiaSel = HSTIARTIA_160K;
+  pImpedanceCfg->HstiaRtiaSel = HSTIARTIA_1K; /* safer initial value */
+  pImpedanceCfg->HstiaRtiaAutoEn = bFALSE;
+  pImpedanceCfg->HstiaRtiaRangeChanged = bFALSE;
   pImpedanceCfg->BiasVolt = 0.0;
   /* Configure the sweep function. */
   pImpedanceCfg->SweepCfg.SweepEn = bFALSE;
@@ -233,6 +235,7 @@ void AD5940ImpedanceStructInit(void) {
   pImpedanceCfg->SweepCfg.SweepLog = bTRUE;
   /* Configure Power Mode. Use HP mode if frequency is higher than 80kHz. */
   pImpedanceCfg->PwrMod = AFEPWR_HP;
+  pImpedanceCfg->AutoFilterEn = bFALSE;
   /* Configure filters if necessary */
   pImpedanceCfg->ADCSinc3Osr =
       ADCSINC3OSR_4; /* Sample rate is 800kSPS/2 = 400kSPS */
@@ -296,33 +299,48 @@ uint32_t command_set_cfg(char *param1_str, double para2) {
       AppIMPCtrl(IMPCTRL_SHUTDOWN, 0);
       configcommand_list_t *item = &config_cmd_list[i];
       void *field_ptr = (uint8_t *)pImpedanceCfg + item->offset;
-      switch (item->value_type) {
-      case TYPE_FLOAT:
-        *(float *)field_ptr = (float)para2;
-        break;
+      if (strcmp(param1_str, "Rcal") == 0) {
+        AD5940Err err;
 
-      case TYPE_INT32:
-        *(int32_t *)field_ptr = (int32_t)para2;
-        break;
+        err =
+            AppIMPSetCalibrationResistor((AppIMPRcalSelection)(uint32_t)para2);
+        if (err != AD5940ERR_OK) {
+          // printf("Invalid Rcal selection\r\n");
+          return 1;
+        }
+      } else {
+        switch (item->value_type) {
+        case TYPE_FLOAT:
+          *(float *)field_ptr = (float)para2;
+          break;
 
-      case TYPE_UINT32:
-        *(uint32_t *)field_ptr = (uint32_t)para2;
-        break;
+        case TYPE_INT32:
+          *(int32_t *)field_ptr = (int32_t)para2;
+          break;
 
-      case TYPE_UINT8:
-        *(uint8_t *)field_ptr = (uint8_t)para2;
-        break;
+        case TYPE_UINT32:
+          *(uint32_t *)field_ptr = (uint32_t)para2;
+          break;
 
-      case TYPE_BOOL:
-        *(uint8_t *)field_ptr = (para2 != 0);
-        break;
+        case TYPE_UINT8:
+          *(uint8_t *)field_ptr = (uint8_t)para2;
+          break;
 
-      default:
-        printf("Unsupported type\r\n");
-        return 1;
+        case TYPE_BOOL:
+          *(uint8_t *)field_ptr = (para2 != 0);
+          break;
+
+        default:
+          printf("Unsupported type\r\n");
+          return 1;
+        }
       }
       //			AD5940PlatformCfg();
       //			AD5940ImpedanceStructInit();
+      float freq = pImpedanceCfg->SinFreq*10.0;
+      freq = round(freq)/10.0;
+      pImpedanceCfg->SinFreq = freq;
+
       if (pImpedanceCfg->SweepCfg.SweepEn)
         pImpedanceCfg->SweepCfg.SweepIndex = 0;
       pImpedanceCfg->bParaChanged = bTRUE;
@@ -388,7 +406,6 @@ uint32_t IDN(uint32_t para1, uint32_t para2) {
   send_packet("IDN", data);
   return 0;
 }
-
 
 static AD5940Err AppADCPgaCal(void) {
   ADCPGACal_Type pga_cal;

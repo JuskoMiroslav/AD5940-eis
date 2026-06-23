@@ -16,15 +16,16 @@
 #define _IMPEDANCESEQUENCES_H_
 #include "AD5940.H"
 #include <stdio.h>
+#include "AD5940.h"
 #include "string.h"
 #include "math.h"
 
 /* Calibration Resistor Selection */
 typedef enum {
-	RCAL_10OHM = 10,
-	RCAL_25P5K = 25500,
-	RCAL_100K = 100000,
-	RCAL_1M = 1000000
+    RCAL_220R  = 220,
+    RCAL_2K    = 2000,
+    RCAL_25P5K = 25500,
+    RCAL_100K  = 100000
 } AppIMPRcalSelection;
 
 typedef struct
@@ -55,7 +56,9 @@ typedef struct
 	AppIMPRcalSelection RcalSelection; /* Calibration resistor selection */
 	uint32_t PwrMod; /* Control Chip power mode(LP/HP) */
 	uint32_t HstiaRtiaSel; /* Use internal RTIA, select from RTIA_INT_200, RTIA_INT_1K, RTIA_INT_5K, RTIA_INT_10K, RTIA_INT_20K, RTIA_INT_40K, RTIA_INT_80K, RTIA_INT_160K */
-	uint32_t ExcitBufGain; /* Select from  EXCTBUFGAIN_2, EXCTBUFGAIN_0P25 */
+	BoolFlag HstiaRtiaAutoEn;
+  BoolFlag AutoFilterEn;
+  uint32_t ExcitBufGain; /* Select from  EXCTBUFGAIN_2, EXCTBUFGAIN_0P25 */
 	uint32_t HsDacGain; /* Select from  HSDACGAIN_1, HSDACGAIN_0P2 */
 	uint32_t HsDacUpdateRate;
 	float DacVoltPP; /* DAC output voltage in mV peak to peak. Maximum value is 600mVpp. Peak to peak voltage  */
@@ -89,6 +92,7 @@ typedef struct
 	SEQInfo_Type MeasureSeqInfo;
 	BoolFlag StopRequired; /* After FIFO is ready, stop the measurement sequence */
 	uint32_t FifoDataCount; /* Count how many times impedance have been measured */
+  BoolFlag HstiaRtiaRangeChanged;
 } AppIMPCfg_Type;
 
 

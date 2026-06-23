@@ -4722,10 +4722,10 @@ typedef struct
 
 typedef struct
 {
-  uint32_t RzReal;         /**< The magnitude in polar coordinate */
-  uint32_t RzImag;             /**< The phase in polar coordinate */
-  uint32_t RcalReal;
-  uint32_t RcalImag;
+  int32_t RzReal;         /**< The magnitude in polar coordinate */
+  int32_t RzImag;             /**< The phase in polar coordinate */
+  int32_t RcalReal;
+  int32_t RcalImag;
 }fImpCalCar_Type;
 
 typedef struct
