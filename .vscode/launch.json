@@ -32,7 +32,7 @@
       ],
       "verbose": false,
       "liveWatch": {
-        "enabled": false,
+        "enabled": true,
         "samplesPerSecond": 4
       }
     },

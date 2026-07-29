@@ -126,10 +126,9 @@ int32_t ImpedanceShowResult(uint32_t *pData, uint32_t DataCount) {
     for (int i = 0; i < DataCount; i++) {
 
       snprintf(data, sizeof(data),
-               "%.2f,%ld,%ld,%ld,%ld,%d,%lu,%lu,%d,%d,%d,%lu,%f", freq,
+               "%.2f,%ld,%ld,%ld,%ld,%d,%lu,%f", freq,
                pImp[i].RzReal, pImp[i].RzImag, pImp[i].RcalReal,
-               pImp[i].RcalImag, cfg->AutoFilterEn, cfg->DftSrc, cfg->DftNum,
-               cfg->ADCSinc2Osr, cfg->ADCSinc3Osr, cfg->HstiaRtiaAutoEn,
+               pImp[i].RcalImag,  cfg->HstiaRtiaAutoEn,
                cfg->HstiaRtiaSel, cfg->RcalVal);
 
       // snprintf(data, sizeof(data), "%.2f,%.6f,%.6f,%.6f,%.6f", freq,
@@ -196,7 +195,7 @@ void AD5940ImpedanceStructInit(void) {
   AppIMPCfg_Type *pImpedanceCfg;
 
   AppIMPGetCfg(&pImpedanceCfg);
-  AppIMPSetCalibrationResistor(RCAL_2K);
+  AppIMPSetCalibrationResistor(RCAL_220R);
   /* Step1: configure initialization sequence Info */
   pImpedanceCfg->SeqStartAddr = 0;
   pImpedanceCfg->MaxSeqLen = 512; /* @todo add checker in function */
@@ -213,7 +212,7 @@ void AD5940ImpedanceStructInit(void) {
    *
    */
   pImpedanceCfg->DacVoltPP = 300; /* Maximum value is 600mV*/
-  pImpedanceCfg->ExcitBufGain = EXCITBUFGAIN_2;
+  pImpedanceCfg->ExcitBufGain = EXCITBUFGAIN_0P25;
   pImpedanceCfg->HsDacGain = HSDACGAIN_1;
 
   /* Set switch matrix to onboard(EVAL-AD5940ELECZ) gas sensor. */
@@ -223,7 +222,7 @@ void AD5940ImpedanceStructInit(void) {
   pImpedanceCfg->TswitchSel = SWT_AIN0; // SWT_SE0LOAD;
   /* The dummy sensor is as low as 5kOhm. We need to make sure RTIA is small
    * enough that HSTIA won't be saturated. */
-  pImpedanceCfg->HstiaRtiaSel = HSTIARTIA_1K; /* safer initial value */
+  pImpedanceCfg->HstiaRtiaSel = HSTIARTIA_200; /* safer initial value */
   pImpedanceCfg->HstiaRtiaAutoEn = bFALSE;
   pImpedanceCfg->HstiaRtiaRangeChanged = bFALSE;
   pImpedanceCfg->BiasVolt = 0.0;
@@ -234,8 +233,8 @@ void AD5940ImpedanceStructInit(void) {
   pImpedanceCfg->SweepCfg.SweepPoints = 101;   /* Points is 101 */
   pImpedanceCfg->SweepCfg.SweepLog = bTRUE;
   /* Configure Power Mode. Use HP mode if frequency is higher than 80kHz. */
-  pImpedanceCfg->PwrMod = AFEPWR_HP;
-  pImpedanceCfg->AutoFilterEn = bFALSE;
+  pImpedanceCfg->PwrMod = AFEPWR_LP;
+  pImpedanceCfg->AutoFilterEn = bTRUE;
   /* Configure filters if necessary */
   pImpedanceCfg->ADCSinc3Osr =
       ADCSINC3OSR_4; /* Sample rate is 800kSPS/2 = 400kSPS */

@@ -24,7 +24,12 @@ Analog Devices Software License Agreement.
 /* Default LPDAC resolution(2.5V internal reference). */
 #define DAC12BITVOLT_1LSB (2200.0f / 4095)        // mV
 #define DAC6BITVOLT_1LSB (DAC12BITVOLT_1LSB * 64) // mV
- uint32_t rd;
+
+
+void send_packet(const char *type, const char *data);
+
+uint32_t rd;
+float RzMag;
 /*
   Application configuration structure. Specified by user from template.
   The variables are usable in this whole application.
@@ -53,9 +58,9 @@ AppIMPCfg_Type AppIMPCfg = {
 
     .PwrMod = AFEPWR_HP,
 
-    .LptiaRtiaSel = LPTIARTIA_4K, /* COnfigure RTIA */
-    .LpTiaRf = LPTIARF_1M,        /* Configure LPF resistor */
-    .LpTiaRl = LPTIARLOAD_100R,
+    .LptiaRtiaSel = LPTIARTIA_200R, /* COnfigure RTIA */
+    .LpTiaRf = LPTIARF_SHORT,       /* Configure LPF resistor */
+    .LpTiaRl = LPTIARLOAD_SHORT,
 
     .HstiaRtiaSel = HSTIARTIA_1K,
     .ExcitBufGain = EXCITBUFGAIN_0P25,
@@ -75,7 +80,7 @@ AppIMPCfg_Type AppIMPCfg = {
     .ADCSinc2Osr = ADCSINC2OSR_22,
 
     .ADCAvgNum = ADCAVGNUM_16,
-
+    .ADC_Rate = ADCRATE_800KHZ,
     .SweepCfg.SweepEn = bTRUE,
     .SweepCfg.SweepStart = 1000,
     .SweepCfg.SweepStop = 100000.0,
@@ -153,7 +158,7 @@ AD5940Err AppIMPSetCalibrationResistor(AppIMPRcalSelection RcalSelect) {
  * Sample-rate chain (ADC core clock = 16 MHz -> ADCRATE_800KHZ):
  *     ADC sample rate              = 800 kHz
  *     SINC3 output rate            = 800 kHz / Sinc3Osr
- *     SINC2 output rate (DFT in)   = SINC3 rate / Sinc2Osr   (DFTSRC_SINC2NOTCH)
+ *     SINC2 output rate (DFT in)   = SINC3 rate / Sinc2Osr (DFTSRC_SINC2NOTCH)
  *  or DFT input rate               = SINC3 rate              (DFTSRC_SINC3)
  *
  * Cycles captured = freq * DftPoints / Fs_dft, with DftPoints = 2^(DftNum+2).
@@ -162,13 +167,15 @@ AD5940Err AppIMPSetCalibrationResistor(AppIMPRcalSelection RcalSelect) {
  * SINC3rate/22 (~9 kHz). That is far below Nyquist for higher frequencies,
  * so above ~2 kHz the DFT is fed straight from SINC3 instead.
  * =================================================================== */
-// #define IMP_ADC_SAMPLE_RATE 800000.0f /* ADC core rate (ADCRATE_800KHZ, 16MHz) */
-#define IMP_TARGET_SPC 18.0f          /* desired samples per signal cycle */
-#define IMP_MIN_CYCLES 16.0f          /* capture at least this many cycles */
+// #define IMP_ADC_SAMPLE_RATE 800000.0f /* ADC core rate (ADCRATE_800KHZ,
+// 16MHz) */
+#define IMP_TARGET_SPC 15.0f /* desired samples per signal cycle */
+#define IMP_MIN_CYCLES 16.0f /* capture at least this many cycles */
 
 static const uint16_t imp_sinc2osr_val[] = {22,  44,  89,  178, 267,  533,
                                             640, 667, 800, 889, 1067, 1333};
-#define IMP_SINC2OSR_CNT (sizeof(imp_sinc2osr_val) / sizeof(imp_sinc2osr_val[0]))
+#define IMP_SINC2OSR_CNT                                                       \
+  (sizeof(imp_sinc2osr_val) / sizeof(imp_sinc2osr_val[0]))
 
 /* Compute and store DftSrc / Sinc3Osr / Sinc2Osr / DftNum for 'freq'. */
 static void AppIMPAdaptiveFilterCfg(float freq) {
@@ -179,8 +186,15 @@ static void AppIMPAdaptiveFilterCfg(float freq) {
     freq = 1.0f;
 
   // AppIMPCfg.ADC_Rate = ADCRATE_800KHZ; /* keep the math and HW consistent */
-  float ImpADCSampleRate = AppIMPCfg.ADC_Rate == ADCRATE_800KHZ?800000.0f:16000000.0f;
-  if (freq <= 600.0f) {
+  float ImpADCSampleRate =
+      AppIMPCfg.ADC_Rate == ADCRATE_800KHZ ? 800000.0f : 16000000.0f;
+  if (freq <= 5) {
+    AppIMPCfg.DftSrc = DFTSRC_SINC2NOTCH;
+    AppIMPCfg.ADCSinc3Osr = ADCSINC3OSR_4;
+    AppIMPCfg.ADCSinc2Osr = ADCSINC2OSR_1333;
+    AppIMPCfg.DftNum = DFTNUM_4096;
+    return;
+  } else if (freq <= 600.0f) {
     /* Low frequency: feed DFT from SINC2 and tune its OSR for ~TARGET_SPC. */
     float fs_sinc3 = ImpADCSampleRate / 4.0f; /* SINC3 OSR4 -> 200 kHz */
     float ideal_osr = fs_sinc3 / (IMP_TARGET_SPC * freq);
@@ -208,13 +222,14 @@ static void AppIMPAdaptiveFilterCfg(float freq) {
     AppIMPCfg.DftSrc = DFTSRC_SINC3;
     AppIMPCfg.ADCSinc3Osr = ADCSINC3OSR_5;
     AppIMPCfg.ADCSinc2Osr = ADCSINC2OSR_22; /* unused by DFT, keep valid */
-    fs_dft = ImpADCSampleRate / 5.0f;    /* 160 kHz */
+    fs_dft = ImpADCSampleRate / 5.0f;       /* 160 kHz */
   } else {
-    /* High frequency: SINC3 OSR2 -> 400 kHz (>=4 samples/cycle up to 100 kHz). */
+    /* High frequency: SINC3 OSR2 -> 400 kHz (>=4 samples/cycle up to 100 kHz).
+     */
     AppIMPCfg.DftSrc = DFTSRC_SINC3;
     AppIMPCfg.ADCSinc3Osr = ADCSINC3OSR_2;
     AppIMPCfg.ADCSinc2Osr = ADCSINC2OSR_22; /* unused by DFT, keep valid */
-    fs_dft = ImpADCSampleRate / 1.0f;    /* 400 kHz */
+    fs_dft = ImpADCSampleRate / 1.0f;       /* 400 kHz */
   }
 
   /* Smallest power-of-two DFT (2^(k+2)) covering >= IMP_MIN_CYCLES cycles. */
@@ -237,9 +252,9 @@ static void AppIMPAdaptiveFilterCfg(float freq) {
  *   RAW: freq, RzReal, RzImag, rz_mag, HstiaRtiaSel
  * =================================================================== */
 
-#define IMP_AUTORTIA_LOW_COUNTS     12000.0f
-#define IMP_AUTORTIA_TARGET_COUNTS  60000.0f
-#define IMP_AUTORTIA_HIGH_COUNTS    90000.0f
+#define IMP_AUTORTIA_LOW_COUNTS 12000.0f
+#define IMP_AUTORTIA_TARGET_COUNTS 60000.0f
+#define IMP_AUTORTIA_HIGH_COUNTS 90000.0f
 
 typedef struct {
   uint32_t sel;
@@ -247,17 +262,13 @@ typedef struct {
 } AppIMPHsRtiaRange_Type;
 
 static const AppIMPHsRtiaRange_Type AppIMPHsRtiaTable[] = {
-    {HSTIARTIA_200,  200.0f},
-    {HSTIARTIA_1K,   1000.0f},
-    {HSTIARTIA_5K,   5000.0f},
-    {HSTIARTIA_10K,  10000.0f},
-    {HSTIARTIA_20K,  20000.0f},
-    {HSTIARTIA_40K,  40000.0f},
-    {HSTIARTIA_80K,  80000.0f},
-    {HSTIARTIA_160K, 160000.0f},
+    {HSTIARTIA_200, 200.0f},   {HSTIARTIA_1K, 1000.0f},
+    {HSTIARTIA_5K, 5000.0f},   {HSTIARTIA_10K, 10000.0f},
+    {HSTIARTIA_20K, 20000.0f}, {HSTIARTIA_40K, 40000.0f},
+    {HSTIARTIA_80K, 80000.0f}, {HSTIARTIA_160K, 160000.0f},
 };
 
-#define APPIMP_HSRTIA_COUNT \
+#define APPIMP_HSRTIA_COUNT                                                    \
   (sizeof(AppIMPHsRtiaTable) / sizeof(AppIMPHsRtiaTable[0]))
 
 static int32_t AppIMPFindHsRtiaIndex(uint32_t rtiaSel) {
@@ -289,8 +300,7 @@ static float AppIMPDftMagFromPair(const int32_t *pData, uint32_t base) {
  * With FifoThresh = 4, one result is:
  *   Rz.Real, Rz.Imag, Rcal.Real, Rcal.Imag
  */
-static BoolFlag AppIMPAutoRangeHstia(int32_t *const pData,
-                                     uint32_t dataCount) {
+static BoolFlag AppIMPAutoRangeHstia(int32_t *const pData, uint32_t dataCount) {
   if (AppIMPCfg.HstiaRtiaAutoEn == bFALSE)
     return bFALSE;
 
@@ -327,8 +337,7 @@ static BoolFlag AppIMPAutoRangeHstia(int32_t *const pData,
     while (new_idx > 0) {
       new_idx--;
 
-      float pred =
-          mag * AppIMPHsRtiaTable[new_idx].ohms / old_ohms;
+      float pred = mag * AppIMPHsRtiaTable[new_idx].ohms / old_ohms;
 
       if (pred <= IMP_AUTORTIA_TARGET_COUNTS)
         break;
@@ -339,8 +348,7 @@ static BoolFlag AppIMPAutoRangeHstia(int32_t *const pData,
      * the high threshold.
      */
     while (new_idx < (int32_t)APPIMP_HSRTIA_COUNT - 1) {
-      float pred =
-          mag * AppIMPHsRtiaTable[new_idx + 1].ohms / old_ohms;
+      float pred = mag * AppIMPHsRtiaTable[new_idx + 1].ohms / old_ohms;
 
       if (pred > IMP_AUTORTIA_HIGH_COUNTS)
         break;
@@ -541,7 +549,7 @@ static AD5940Err AppIMPSeqCfgGen(void) {
   /* Adapt DFT source, OSR and DFT length to the excitation frequency so that
    * at least 20 signal cycles are captured. Sets DftSrc/Sinc3Osr/Sinc2Osr/
    * DftNum/ADC_Rate in AppIMPCfg, which the DSP config below picks up. */
-  if(AppIMPCfg.AutoFilterEn)
+  if (AppIMPCfg.AutoFilterEn)
     AppIMPAdaptiveFilterCfg(sin_freq);
 
   dsp_cfg.ADCBaseCfg.ADCMuxN = ADCMUXN_HSTIA_N;
@@ -632,9 +640,9 @@ static AD5940Err AppIMPSeqMeasureGen(void) {
   LpAmpCfg.LpAmpSel = LPAMP0;
   AD5940_LPAMPCfgS(&LpAmpCfg);
   /* Sensor + Rload Measurement */
-  sw_cfg.Dswitch = AppIMPCfg.DswitchSel;//|SWD_AFE1;
+  sw_cfg.Dswitch = AppIMPCfg.DswitchSel; //|SWD_AFE1;
   sw_cfg.Pswitch = AppIMPCfg.PswitchSel;
-  sw_cfg.Nswitch = AppIMPCfg.NswitchSel;//|SWN_AFE3LOAD;
+  sw_cfg.Nswitch = AppIMPCfg.NswitchSel; //|SWN_AFE3LOAD;
   sw_cfg.Tswitch = SWT_TRTIA | AppIMPCfg.TswitchSel;
   AD5940_SWMatrixCfgS(&sw_cfg);
 
@@ -674,8 +682,8 @@ static AD5940Err AppIMPSeqMeasureGen(void) {
   //                     AFECTRL_WG | AFECTRL_DACREFPWR | AFECTRL_HSDACPWR |
   //                     AFECTRL_SINC2NOTCH,
   //                 bTRUE);
-  // AD5940_SEQGenInsert(SEQ_WAIT(16 * 10)); // delay for signal settling DFT_WAIT
-  // AD5940_AFECtrlS(AFECTRL_ADCCNV | AFECTRL_DFT,
+  // AD5940_SEQGenInsert(SEQ_WAIT(16 * 10)); // delay for signal settling
+  // DFT_WAIT AD5940_AFECtrlS(AFECTRL_ADCCNV | AFECTRL_DFT,
   //                 bTRUE);                  /* Start ADC convert and DFT */
   // AD5940_SEQGenInsert(SEQ_WAIT(WaitClks)); /* wait for first data ready */
   // AD5940_AFECtrlS(AFECTRL_HSTIAPWR | AFECTRL_INAMPPWR | AFECTRL_EXTBUFPWR |
@@ -881,7 +889,7 @@ int32_t AppIMPRegModify(int32_t *const pData, uint32_t *pDataCount) {
     AD5940_WUPTCtrl(bFALSE);
     return AD5940ERR_OK;
   }
-   if (AppIMPAutoRangeHstia(pData, *pDataCount) == bTRUE) {
+  if (AppIMPAutoRangeHstia(pData, *pDataCount) == bTRUE) {
     /*
      * Do not update WG frequency here. AppIMPDataProcess() will discard this
      * result and will not advance SweepCurrFreq/SweepNextFreq, so the next
@@ -889,7 +897,8 @@ int32_t AppIMPRegModify(int32_t *const pData, uint32_t *pDataCount) {
      */
     return AD5940ERR_OK;
   }
-  if (AppIMPCfg.SweepCfg.SweepEn) /* Need to set new frequency and set power mode */
+  if (AppIMPCfg.SweepCfg
+          .SweepEn) /* Need to set new frequency and set power mode */
   {
     /* Re-tune DFT length / OSR for the upcoming frequency so it still captures
      * at least 20 cycles, then update the excitation frequency. */
@@ -897,8 +906,9 @@ int32_t AppIMPRegModify(int32_t *const pData, uint32_t *pDataCount) {
     uint8_t old_s2 = AppIMPCfg.ADCSinc2Osr;
     uint8_t old_s3 = AppIMPCfg.ADCSinc3Osr;
     uint32_t old_src = AppIMPCfg.DftSrc;
-
-    AppIMPAdaptiveFilterCfg(AppIMPCfg.SweepNextFreq);
+    if (AppIMPCfg.AutoFilterEn) {
+      AppIMPAdaptiveFilterCfg(AppIMPCfg.SweepNextFreq);
+    }
 
     if (AppIMPCfg.DftNum != old_dftnum || AppIMPCfg.ADCSinc2Osr != old_s2 ||
         AppIMPCfg.ADCSinc3Osr != old_s3 || AppIMPCfg.DftSrc != old_src) {
@@ -907,6 +917,15 @@ int32_t AppIMPRegModify(int32_t *const pData, uint32_t *pDataCount) {
        * AFE is awake here and the next Wupt trigger is one ODR period away. */
       AppIMPSeqMeasureRegen();
       AppIMPApplyFilterRegs();
+      char data[400];
+      snprintf(data, sizeof(data), "%.2f,%d,%lu,%lu,%d,%d,", AppIMPCfg.SweepNextFreq,
+               AppIMPCfg.AutoFilterEn, AppIMPCfg.DftSrc, AppIMPCfg.DftNum, AppIMPCfg.ADCSinc2Osr,
+               AppIMPCfg.ADCSinc3Osr);
+
+      // snprintf(data, sizeof(data), "%.2f,%.6f,%.6f,%.6f,%.6f", freq,
+      // pImp[i].RzMag, pImp[i].RzPhase, pImp[i].RcalMag,pImp[i].RcalPhase);
+
+      send_packet("DAF", data);
     }
 
     AD5940_WGFreqCtrlS(AppIMPCfg.SweepNextFreq, AppIMPCfg.SysClkFreq);
@@ -917,7 +936,7 @@ int32_t AppIMPRegModify(int32_t *const pData, uint32_t *pDataCount) {
 /* Depending on the data type, do appropriate data pre-process before return
  * back to controller */
 int32_t AppIMPDataProcess(int32_t *const pData, uint32_t *pDataCount) {
-    if (AppIMPCfg.HstiaRtiaRangeChanged == bTRUE) {
+  if (AppIMPCfg.HstiaRtiaRangeChanged == bTRUE) {
     AppIMPCfg.HstiaRtiaRangeChanged = bFALSE;
     *pDataCount = 0;
     return 0;
@@ -945,16 +964,19 @@ int32_t AppIMPDataProcess(int32_t *const pData, uint32_t *pDataCount) {
   }
   fImpCar_Type DftRcal, DftRzRload;
   for (uint32_t i = 0; i < ImpResCount; i++) {
+
+    float RcalMag;
     pOut[i].RzReal = DftRzRload.Real = pSrcData->Real;
     pOut[i].RzImag = DftRzRload.Image = -pSrcData->Image;
     pSrcData++;
     pOut[i].RcalReal = DftRcal.Real = pSrcData->Real;
     pOut[i].RcalImag = DftRcal.Image = -pSrcData->Image;
     pSrcData++;
-    // pOut[i].RcalMag = AD5940_ComplexMag(&DftRcal);
-    // pOut[i].RzMag = AD5940_ComplexMag(&DftRzRload);
-    // pOut[i].RcalPhase = AD5940_ComplexPhase(&DftRcal);
-    // pOut[i].RzPhase = AD5940_ComplexPhase(&DftRzRload);
+    RcalMag = sqrt((float)pOut[i].RcalReal * pOut[i].RcalReal +
+                   (float)pOut[i].RcalImag * pOut[i].RcalImag);
+    RzMag = sqrt((float)pOut[i].RzReal * pOut[i].RzReal +
+                 (float)pOut[i].RzImag * pOut[i].RzImag);
+    RzMag = RcalMag / RzMag * AppIMPCfg.RcalVal;
   }
   *pDataCount = ImpResCount;
   AppIMPCfg.FreqofData = AppIMPCfg.SweepCurrFreq;
@@ -1008,10 +1030,9 @@ AD5940Err AppIMPISR(void *pBuff, uint32_t *pCount) {
 }
 BoolFlag isRunning(void) { return AppIMPCfg.bIsRunning; }
 uint8_t calc_checksum(const char *data) {
-    uint8_t chk = 0;
-    while (*data) {
-        chk ^= (uint8_t)(*data++);
-    }
-    return chk;
+  uint8_t chk = 0;
+  while (*data) {
+    chk ^= (uint8_t)(*data++);
+  }
+  return chk;
 }
-
